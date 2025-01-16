@@ -100,7 +100,7 @@ function stopDrawing() {
 }
 
 function updatePlayerList(players) {
-    const playerlist = document.querySelector('#players');
+    const playerList = document.querySelector('#players');
     playerList.innerHTML = players.map(player => `<li>${player}</li>`).join('');
 }
 
