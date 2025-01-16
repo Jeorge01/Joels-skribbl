@@ -1,0 +1,11 @@
+li {
+    list-style: none;
+}
+
+li.disconnection-message span {
+    color: red;
+}
+
+li.connection-message span {
+    color: green;
+}
