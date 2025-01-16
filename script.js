@@ -3,6 +3,7 @@ let isDrawing = false;
 let canvas = document.querySelector('#gameCanvas');
 let ctx = canvas.getContext('2d');
 let lastX, lastY;
+const PORT = 8888;
 
 document.addEventListener('DOMContentLoaded', () => {
     const joinBtn = document.querySelector('#joinBtn');
@@ -29,7 +30,7 @@ function joinGame() {
     const playerName = document.querySelector('#playerName').value;
     if (!playerName) return;
 
-    ws = new WebSocket(`ws://localhost:${process.env.PORT}`);
+    ws = new WebSocket(`ws://localhost:${PORT}`);
 
     ws.onopen = () => {
         document.querySelector('.login-screen').style.display = 'none';

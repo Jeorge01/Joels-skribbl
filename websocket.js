@@ -1,7 +1,10 @@
 const websocket = require('ws');
 const express = require('express');
 const path = require('path');
+require('dotenv').config();
 
+const WebSocket = websocket;
+const PORT = process.env.PORT || 3000;
 const app = express();
 const server = require('http').createServer(app);
 const wss = new websocket.Server({ server });
@@ -43,7 +46,7 @@ wss.on('connection', (ws) => {
 });
 
 function broadcast(message, sender) {
-    wss.clients.foreach((client) => {
+    wss.clients.forEach((client) => {
         if (client !== sender && client.readyState === WebSocket.OPEN) {
             client.send(message);
         }
@@ -54,14 +57,13 @@ function broadcastPlayers() {
     const playerList = Array.from(clients.values()).map((client) => client.name);
     const message = JSON.stringify({ type: 'players', players: playerList });
 
-    wss.clients.foreach((client) => {
+    wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
             client.send(message);
         }
     });
 }
 
-const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
