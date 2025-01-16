@@ -1,16 +1,12 @@
 let ws;
 let isDrawing = false;
-let canvas;
-let ctx;
+let canvas = document.querySelector('#gameCanvas');
+let ctx = canvas.getContext('2d');
 let lastX, lastY;
 
 document.addEventListener('DOMContentLoaded', () => {
-    canvas = document.querySelector('#gameCanvas');
-    ctx = canvas.getContext('2d');
-
     const joinBtn = document.querySelector('#joinBtn');
     joinBtn.addEventListener('click', joinGame);
-
     setupCanvas();
 });
 
@@ -29,6 +25,7 @@ canvas.addEventListener('touchmove', (e) => {
 canvas.addEventListener('touchend', stopDrawing);
 
 function joinGame() {
+    console.log("joining game")
     const playerName = document.querySelector('#playerName').value;
     if (playerName) return;
 
