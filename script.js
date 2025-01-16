@@ -3,6 +3,7 @@ let isDrawing = false;
 let canvas = document.querySelector("#gameCanvas");
 let ctx = canvas.getContext("2d");
 let lastX, lastY;
+let playerName;
 const PORT = 8888;
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -29,6 +30,7 @@ function joinGame() {
     console.log("joining game");
     const playerName = document.querySelector("#playerName").value;
     if (!playerName) return;
+    let previousPlayers = [];
 
     ws = new WebSocket(`ws://localhost:${PORT}`);
 
@@ -43,23 +45,52 @@ function joinGame() {
             JSON.stringify({
                 type: "join",
                 name: playerName,
+                status: "connected"
             })
         );
     };
 
     ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        console.log("Received:", data); // Debug log
-
+        console.log("Received:", data);
+    
         if (data.type === "draw") {
             drawLine(data.x0, data.y0, data.x1, data.y1, data.color, data.width);
         } else if (data.type === "players") {
+            // Find new players by comparing with previous list
+            const newPlayers = data.players.filter(player => !previousPlayers.includes(player));
+            // Find disconnected players by comparing with current list
+            const disconnectedPlayers = previousPlayers.filter(player => !data.players.includes(player));
+            
+            const chatBox = document.querySelector(".chat-box");
+            // Show connection messages for new players
+            newPlayers.forEach(player => {
+                chatBox.innerHTML += `<li class="connection-message"><span>${player} has connected</span></li>`;
+            });
+            // Show disconnection messages for players who left
+            disconnectedPlayers.forEach(player => {
+                chatBox.innerHTML += `<li class="disconnection-message"><span>${player} has disconnected</span></li>`;
+            });
+    
+            // Update the player list display
             updatePlayerList(data.players);
+            // Store current players for next comparison
+            previousPlayers = [...data.players];
         } else if (data.type === "chat") {
             const chatBox = document.querySelector(".chat-box");
             chatBox.innerHTML += `<li><span>${data.message}</span></li>`;
         }
     };
+
+    window.addEventListener("beforeunload", () => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({
+                type: "status",
+                name: playerName,
+                status: "disconnected"
+            }));
+        }
+    });
 }
 
 function setupCanvas() {
@@ -117,7 +148,7 @@ function draw(event) {
     [lastX, lastY] = [event.offsetX, event.offsetY];
 }
 
-function DrawLine(x0, y0, x1, y1, color, width) {
+function drawLine(x0, y0, x1, y1, color, width) {
     ctx.beginPath();
     ctx.moveTo(x0, y0);
     ctx.lineTo(x1, y1);
