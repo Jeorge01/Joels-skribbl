@@ -29,7 +29,7 @@ function joinGame() {
     const playerName = document.querySelector('#playerName').value;
     if (!playerName) return;
 
-    ws = new WebSocket('ws://localhost:3000');
+    ws = new WebSocket(`ws://localhost:${process.env.PORT}`);
 
     ws.onopen = () => {
         document.querySelector('.login-screen').style.display = 'none';
