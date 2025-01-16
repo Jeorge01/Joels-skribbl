@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Document</title>
+
+        <style>
+            #gameCanvas {
+                border: 1px solid black;
+                background-color: white;
+            }
+
+            .gameContianer {
+                display: flex;
+                gap: 20px;
+                padding: 20px;
+            }
+            .player-list {
+                min-width: 200px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="login-screen">
+            <input type="text" name="playername" id="playername" />
+            <input type="submit" value="join game" id="join" />
+        </div>
+
+        <div class="game-container" style="display: none">
+            <div class="drawing-area">
+                <canvas id="gameCanvas" width="800" height="600"></canvas>
+                <div class="tools">
+                    <input type="color" name="color" id="colorpicker" />
+                    <input type="range" name="brushSize" id="brushSize" min="1" max="20" value="5" />
+                </div>
+            </div>
+            <div class="player-list">
+                <h3>players</h3>
+                <ul id="players"></ul>
+            </div>
+        </div>
+
+        <script src="script.js"></script>
+    </body>
+</html>
