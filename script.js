@@ -32,6 +32,8 @@ function joinGame() {
     if (!playerName) return;
     let previousPlayers = [];
 
+    const playerId = `${playerName}_${Date.now()}`;
+
     ws = new WebSocket(`ws://localhost:${PORT}`);
 
     ws.onopen = () => {
@@ -45,7 +47,8 @@ function joinGame() {
             JSON.stringify({
                 type: "join",
                 name: playerName,
-                status: "connected"
+                id: playerId,
+                status: "connected",
             })
         );
     };
@@ -57,24 +60,21 @@ function joinGame() {
         if (data.type === "draw") {
             drawLine(data.x0, data.y0, data.x1, data.y1, data.color, data.width);
         } else if (data.type === "players") {
-            // Find new players by comparing with previous list
-            const newPlayers = data.players.filter(player => !previousPlayers.includes(player));
-            // Find disconnected players by comparing with current list
-            const disconnectedPlayers = previousPlayers.filter(player => !data.players.includes(player));
-            
             const chatBox = document.querySelector(".chat-box");
-            // Show connection messages for new players
-            newPlayers.forEach(player => {
-                chatBox.innerHTML += `<li class="connection-message"><span>${player} has connected</span></li>`;
-            });
-            // Show disconnection messages for players who left
-            disconnectedPlayers.forEach(player => {
-                chatBox.innerHTML += `<li class="disconnection-message"><span>${player} has disconnected</span></li>`;
-            });
-    
-            // Update the player list display
+            
+            if (data.players.length > previousPlayers.length) {
+                const newPlayer = data.players[data.players.length - 1];
+                chatBox.innerHTML += `<li class="connection-message"><span>${newPlayer.name} has connected</span></li>`;
+            } else if (data.players.length < previousPlayers.length) {
+                const disconnectedPlayer = previousPlayers.find((prevPlayer) => 
+                    !data.players.some(currentPlayer => currentPlayer.id === prevPlayer.id)
+                );
+                if (disconnectedPlayer) {
+                    chatBox.innerHTML += `<li class="disconnection-message"><span>${disconnectedPlayer.name} has disconnected</span></li>`;
+                }
+            }
+            
             updatePlayerList(data.players);
-            // Store current players for next comparison
             previousPlayers = [...data.players];
         } else if (data.type === "chat") {
             const chatBox = document.querySelector(".chat-box");
@@ -84,11 +84,14 @@ function joinGame() {
 
     window.addEventListener("beforeunload", () => {
         if (ws && ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify({
-                type: "status",
-                name: playerName,
-                status: "disconnected"
-            }));
+            ws.send(
+                JSON.stringify({
+                    type: "status",
+                    name: playerName,
+                    id: playerId,
+                    status: "disconnected",
+                })
+            );
         }
     });
 }
@@ -164,7 +167,7 @@ function stopDrawing() {
 
 function updatePlayerList(players) {
     const playerList = document.querySelector("#players");
-    playerList.innerHTML = players.map((player) => `<li>${player}</li>`).join("");
+    playerList.innerHTML = players.map((player) => `<li>${player.name}</li>`).join("");
 }
 
 function resizeCanvas() {

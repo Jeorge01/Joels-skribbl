@@ -29,7 +29,10 @@ wss.on('connection', (ws) => {
         
         switch(data.type) {
             case 'join':
-                clients.set(ws, { name: data.name });
+                clients.set(ws, {
+                    name: data.name,
+                    id: data.id,
+                });
                 broadcastPlayers();
                 break;
             case 'draw':
@@ -59,8 +62,15 @@ function broadcast(message, sender) {
 }
 
 function broadcastPlayers() {
-    const playerList = Array.from(clients.values()).map((client) => client.name);
-    const message = JSON.stringify({ type: 'players', players: playerList });
+    const playerData = Array.from(clients).map(([_, client]) => ({
+        name: client.name,
+        id: client.id
+    }));
+    
+    const message = JSON.stringify({
+        type: 'players',
+        players: playerData
+    });
 
     wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
