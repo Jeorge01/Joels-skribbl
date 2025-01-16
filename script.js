@@ -28,7 +28,7 @@ canvas.addEventListener("touchend", stopDrawing);
 
 function joinGame() {
     console.log("joining game");
-    const playerName = document.querySelector("#playerName").value;
+    playerName = document.querySelector("#playerName").value;
     if (!playerName) return;
     let previousPlayers = [];
 
@@ -78,7 +78,7 @@ function joinGame() {
             previousPlayers = [...data.players];
         } else if (data.type === "chat") {
             const chatBox = document.querySelector(".chat-box");
-            chatBox.innerHTML += `<li><span>${data.message}</span></li>`;
+            chatBox.innerHTML += `<li><span>${data.sender}: ${data.message}</span></li>`;
         }
     };
 
@@ -110,7 +110,7 @@ function sendMessage() {
     if (!message) return;
 
     const chatBox = document.querySelector(".chat-box");
-    chatBox.innerHTML += `<li><span>${message}</span></li>`;
+    chatBox.innerHTML += `<li><span>${playerName}</span><span>${message}</span></li>`;
 
     console.log("Sending chat message:", message);
     ws.send(
