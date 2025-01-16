@@ -33,8 +33,12 @@ wss.on('connection', (ws) => {
                 broadcastPlayers();
                 break;
             case 'draw':
-                breakcast(message, ws);
-            break;
+                broadcast(message, ws);
+                break;
+            case 'chat':
+                broadcast(message.toString(), ws);
+                console.log('Broadcasting chat message');
+                break;
         }
     });
 
@@ -46,9 +50,10 @@ wss.on('connection', (ws) => {
 });
 
 function broadcast(message, sender) {
+    const messageToSend = typeof message === 'string' ? message : JSON.stringify(message);
     wss.clients.forEach((client) => {
         if (client !== sender && client.readyState === WebSocket.OPEN) {
-            client.send(message);
+            client.send(messageToSend);
         }
     });
 }

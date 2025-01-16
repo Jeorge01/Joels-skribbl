@@ -1,63 +1,93 @@
 let ws;
 let isDrawing = false;
-let canvas = document.querySelector('#gameCanvas');
-let ctx = canvas.getContext('2d');
+let canvas = document.querySelector("#gameCanvas");
+let ctx = canvas.getContext("2d");
 let lastX, lastY;
 const PORT = 8888;
 
-document.addEventListener('DOMContentLoaded', () => {
-    const joinBtn = document.querySelector('#joinBtn');
-    joinBtn.addEventListener('click', joinGame);
+document.addEventListener("DOMContentLoaded", () => {
+    const joinBtn = document.querySelector("#joinBtn");
+    joinBtn.addEventListener("click", joinGame);
     setupCanvas();
 });
 
-canvas.addEventListener('touchstart', (e) => {
+canvas.addEventListener("touchstart", (e) => {
     e.preventDefault();
     const touch = e.touches[0];
     startDrawing(touch);
 });
 
-canvas.addEventListener('touchmove', (e) => {
+canvas.addEventListener("touchmove", (e) => {
     e.preventDefault();
     const touch = e.touches[0];
     draw(touch);
 });
 
-canvas.addEventListener('touchend', stopDrawing);
+canvas.addEventListener("touchend", stopDrawing);
 
 function joinGame() {
-    console.log("joining game")
-    const playerName = document.querySelector('#playerName').value;
+    console.log("joining game");
+    const playerName = document.querySelector("#playerName").value;
     if (!playerName) return;
 
     ws = new WebSocket(`ws://localhost:${PORT}`);
 
     ws.onopen = () => {
-        document.querySelector('.login-screen').style.display = 'none';
-        document.querySelector('.game-container').style.display = 'flex';
+        document.querySelector(".login-screen").style.display = "none";
+        document.querySelector(".game-container").style.display = "flex";
 
-        ws.send(JSON.stringify({
-            type: 'join',
-            name: playerName
-        }));
+        const sendBtn = document.querySelector("#sendBtn");
+        sendBtn.addEventListener("click", sendMessage);
+
+        ws.send(
+            JSON.stringify({
+                type: "join",
+                name: playerName,
+            })
+        );
     };
 
     ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
+        console.log("Received:", data); // Debug log
 
-        if (data.type === 'draw') {
+        if (data.type === "draw") {
             drawLine(data.x0, data.y0, data.x1, data.y1, data.color, data.width);
-        } else if (data.type === 'players') {
+        } else if (data.type === "players") {
             updatePlayerList(data.players);
+        } else if (data.type === "chat") {
+            const chatBox = document.querySelector(".chat-box");
+            chatBox.innerHTML += `<li><span>${data.message}</span></li>`;
         }
     };
 }
 
 function setupCanvas() {
-    canvas.addEventListener('mousedown', startDrawing);
-    canvas.addEventListener('mousemove', draw);
-    canvas.addEventListener('mouseup', stopDrawing);
-    canvas.addEventListener('mouseout', stopDrawing);
+    canvas.addEventListener("mousedown", startDrawing);
+    canvas.addEventListener("mousemove", draw);
+    canvas.addEventListener("mouseup", stopDrawing);
+    canvas.addEventListener("mouseout", stopDrawing);
+}
+
+function sendMessage() {
+    const chatInput = document.querySelector("#chatInput");
+    const message = chatInput.value;
+
+    if (!message) return;
+
+    const chatBox = document.querySelector(".chat-box");
+    chatBox.innerHTML += `<li><span>${message}</span></li>`;
+
+    console.log("Sending chat message:", message);
+    ws.send(
+        JSON.stringify({
+            type: "chat",
+            message: message,
+            sender: playerName,
+        })
+    );
+
+    chatInput.value = "";
 }
 
 function startDrawing(event) {
@@ -67,20 +97,22 @@ function startDrawing(event) {
 
 function draw(event) {
     if (!isDrawing) return;
-    const color = document.querySelector('#colorPicker').value;
-    const width = document.querySelector('#brushSize').value;
+    const color = document.querySelector("#colorPicker").value;
+    const width = document.querySelector("#brushSize").value;
 
     drawLine(lastX, lastY, event.offsetX, event.offsetY, color, width);
 
-    ws.send(JSON.stringify({
-        type: 'draw',
-        x0: lastX,
-        y0: lastY,
-        x1: event.offsetX,
-        y1: event.offsetY,
-        color: color,
-        width: width
-    }));
+    ws.send(
+        JSON.stringify({
+            type: "draw",
+            x0: lastX,
+            y0: lastY,
+            x1: event.offsetX,
+            y1: event.offsetY,
+            color: color,
+            width: width,
+        })
+    );
 
     [lastX, lastY] = [event.offsetX, event.offsetY];
 }
@@ -91,7 +123,7 @@ function DrawLine(x0, y0, x1, y1, color, width) {
     ctx.lineTo(x1, y1);
     ctx.strokeStyle = color;
     ctx.lineWidth = width;
-    ctx.lineCap = 'round';
+    ctx.lineCap = "round";
     ctx.stroke();
 }
 
@@ -100,8 +132,8 @@ function stopDrawing() {
 }
 
 function updatePlayerList(players) {
-    const playerList = document.querySelector('#players');
-    playerList.innerHTML = players.map(player => `<li>${player}</li>`).join('');
+    const playerList = document.querySelector("#players");
+    playerList.innerHTML = players.map((player) => `<li>${player}</li>`).join("");
 }
 
 function resizeCanvas() {
@@ -110,11 +142,13 @@ function resizeCanvas() {
     canvas.height = rect.height;
 }
 
-window.addEventListener('resize', resizeCanvas);
+window.addEventListener("resize", resizeCanvas);
 
 function clearCanvas() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ws.send(JSON.stringify({
-        type: 'clear'
-    }));
+    ws.send(
+        JSON.stringify({
+            type: "clear",
+        })
+    );
 }
