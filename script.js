@@ -27,7 +27,7 @@ canvas.addEventListener('touchend', stopDrawing);
 function joinGame() {
     console.log("joining game")
     const playerName = document.querySelector('#playerName').value;
-    if (playerName) return;
+    if (!playerName) return;
 
     ws = new WebSocket('ws://localhost:3000');
 
