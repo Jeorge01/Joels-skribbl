@@ -78,7 +78,9 @@ function joinGame() {
             previousPlayers = [...data.players];
         } else if (data.type === "chat") {
             const chatBox = document.querySelector(".chat-box");
-            chatBox.innerHTML += `<li><span>${data.sender}${" "}${data.message}</span></li>`;
+            const timeOptions = { hour: '2-digit', minute: '2-digit' };
+            const localTime = new Date(data.timestamp).toLocaleTimeString([], timeOptions);
+            chatBox.innerHTML += `<li><span>${data.sender}${" "}</span><span>${localTime}${" "}</span><span>${data.message}${" "}</span></li>`;
         }
     };
 
@@ -106,18 +108,21 @@ function setupCanvas() {
 function sendMessage() {
     const chatInput = document.querySelector("#chatInput");
     const message = chatInput.value;
+    const timestamp = Date.now();
 
     if (!message) return;
 
     const chatBox = document.querySelector(".chat-box");
-    chatBox.innerHTML += `<li><span>${playerName}${" "}</span><span>${message}</span></li>`;
-
+    const timeOptions = { hour: '2-digit', minute: '2-digit' };
+    chatBox.innerHTML += `<li><span>${playerName}${" "}</span><span>${new Date().toLocaleTimeString([], timeOptions)}${" "}</span><span>${message}${" "}</span></li>`;
     console.log("Sending chat message:", message);
+
     ws.send(
         JSON.stringify({
             type: "chat",
             message: message,
             sender: playerName,
+            timestamp: timestamp
         })
     );
 
