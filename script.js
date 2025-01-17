@@ -4,6 +4,7 @@ let canvas = document.querySelector("#gameCanvas");
 let ctx = canvas.getContext("2d");
 let lastX, lastY;
 let playerName;
+let currentColor = "#000000";
 const PORT = 8888;
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -15,6 +16,15 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     setupCanvas();
+});
+
+document.querySelectorAll('.color-btn').forEach(btn => {
+    btn.style.backgroundColor = btn.dataset.color;
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentColor = btn.dataset.color;
+    });
 });
 
 canvas.addEventListener("touchstart", (e) => {
@@ -160,10 +170,9 @@ function startDrawing(event) {
 
 function draw(event) {
     if (!isDrawing) return;
-    const color = document.querySelector("#colorPicker").value;
     const width = document.querySelector("#brushSize").value;
 
-    drawLine(lastX, lastY, event.offsetX, event.offsetY, color, width);
+    drawLine(lastX, lastY, event.offsetX, event.offsetY, currentColor, width);
 
     ws.send(
         JSON.stringify({
@@ -172,7 +181,7 @@ function draw(event) {
             y0: lastY,
             x1: event.offsetX,
             y1: event.offsetY,
-            color: color,
+            color: currentColor,
             width: width,
         })
     );
