@@ -4,7 +4,7 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Skribbl</title>
-        <link rel="stylesheet" href="style.css">
+        <link rel="stylesheet" href="style.css" />
 
         <style>
             #gameCanvas {
@@ -24,8 +24,10 @@
     </head>
     <body>
         <div class="login-screen">
-            <input type="text" name="playername" id="playerName" />
-            <input type="submit" value="join game" id="joinBtn" />
+            <form id="join-form">
+                <input type="text" name="playername" id="playerName" autofocus />
+                <input type="submit" value="join game" id="joinBtn" />
+            </form>
         </div>
 
         <div class="game-container" style="display: none">
@@ -41,11 +43,13 @@
                 <ul id="players"></ul>
             </div>
             <div class="chat-container">
-                <ul class="chat-box">
+                <ul class="chat-box"></ul>
+                <form class="chat-form">
+                    <input type="text" name="chat" id="chatInput" />
+                    <input type="submit" value="send" id="sendBtn" />
+                </form>
 
-                </ul>
-                <input type="text" name="chat" id="chatInput" />
-                <input type="submit" value="send" id="sendBtn" />
+                <button>Start Game</button>
             </div>
         </div>
 
