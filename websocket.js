@@ -8,6 +8,7 @@ const PORT = process.env.PORT || 3000;
 const app = express();
 const server = require('http').createServer(app);
 const wss = new websocket.Server({ server });
+let drawingHistory = [];
 
 app.use(express.static(__dirname));
 
@@ -24,8 +25,13 @@ const clients = new Map();
 wss.on('connection', (ws) => {
     console.log('New client connected');
 
+    drawingHistory.forEach(drawData => {
+        ws.send(JSON.stringify(drawData));
+    });
+
     ws.on('message', (message) => {
         const data = JSON.parse(message);
+        // console.log('Server received:', data);
         
         switch(data.type) {
             case 'join':
@@ -35,12 +41,30 @@ wss.on('connection', (ws) => {
                 });
                 broadcastPlayers();
                 break;
-            case 'draw':
-                broadcast(message, ws);
-                break;
             case 'chat':
-                broadcast(message.toString(), ws);
-                console.log('Broadcasting chat message');
+                    broadcast(message.toString(), ws);
+                    console.log('Broadcasting chat message');
+                    break;
+            case 'draw':
+                drawingHistory.push(data);
+
+                wss.clients.forEach((client) => {
+                    if (client.readyState === WebSocket.OPEN) {
+                        const stringifiedData = JSON.stringify(data); // Convert to JSON string
+                        client.send(stringifiedData);
+                        // console.log("Sending draw data:", stringifiedData);
+                    }
+                });
+                break;
+            case 'clear':
+                drawingHistory = [];
+                // browser clerars the canvas, so no need to send a clear message
+                wss.clients.forEach(client => {
+                    if (client.readyState === WebSocket.OPEN) {
+                        client.send(JSON.stringify({ type: 'clear'}));
+                        client.send(message);
+                    }
+                });
                 break;
         }
     });
