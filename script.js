@@ -125,7 +125,8 @@ function setupCanvas() {
     canvas.addEventListener("mouseout", stopDrawing);
 }
 
-function sendMessage() {
+function sendMessage(e) {
+    e.preventDefault();
     const chatInput = document.querySelector("#chatInput");
     const message = chatInput.value;
     const timestamp = Date.now();
