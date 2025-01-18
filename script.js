@@ -27,6 +27,9 @@ document.querySelectorAll(".color-btn").forEach((btn) => {
     });
 });
 
+document.querySelector("#clearBtn").addEventListener("click", clearCanvas);
+
+
 canvas.addEventListener("touchstart", (e) => {
     e.preventDefault();
     const touch = e.touches[0];
@@ -83,6 +86,8 @@ function joinGame() {
 
     ws.onmessage = (event) => {
         try {
+            console.log("Raw received data:", event.data);
+
             const decodedData = typeof event.data === 'string'
                 ? event.data // Already a string
                 : new TextDecoder().decode(event.data); // Decode binary Buffer
@@ -100,6 +105,9 @@ function joinGame() {
                     break;
                 case "chat":
                     handleChat(data);
+                    break;
+                case "clear":
+                    clearCanvas(); // Clear the canvas on receiving a clear message
                     break;
                 default:
                     console.warn("Unknown message type received:", data.type);
@@ -262,9 +270,12 @@ window.addEventListener("resize", resizeCanvas);
 
 function clearCanvas() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ws.send(
-        JSON.stringify({
-            type: "clear",
-        })
-    );
+    // Only send the clear message if we initiated the clear
+    if (event && event.type === 'click') {
+        ws.send(
+            JSON.stringify({
+                type: "clear",
+            })
+        );
+    }
 }

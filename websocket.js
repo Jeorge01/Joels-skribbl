@@ -58,13 +58,13 @@ wss.on('connection', (ws) => {
                 break;
             case 'clear':
                 drawingHistory = [];
-                // browser clerars the canvas, so no need to send a clear message
-                wss.clients.forEach(client => {
-                    if (client.readyState === WebSocket.OPEN) {
-                        client.send(JSON.stringify({ type: 'clear'}));
-                        client.send(message);
-                    }
-                });
+                
+                drawingHistory = [];
+    wss.clients.forEach(client => {
+        if (client !== ws && client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({type: 'clear'}));
+        }
+    });
                 break;
         }
     });
