@@ -5,7 +5,7 @@ let ctx = canvas.getContext("2d");
 let lastX, lastY;
 let playerName;
 let currentColor = "#000000";
-const PORT = 8888;
+const PORT = window.CONFIG.PORT || 3000;
 let strokeHistory = [];
 let currentStroke = [];
 
@@ -60,8 +60,11 @@ function joinGame() {
 
     const playerId = `${playerName}_${Date.now()}`;
 
+    const wsUrl = `ws://${window.location.hostname}:8888`;
+    console.log("Connecting to:", wsUrl);
+
     try {
-        ws = new WebSocket(`ws://localhost:${PORT}`);
+        ws = new WebSocket(wsUrl);
 
         ws.onerror = (error) => {
             console.log("WebSocket Error:", error);
