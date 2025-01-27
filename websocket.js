@@ -8,7 +8,12 @@ const PORT = process.env.PORT || 3000;
 const app = express();
 const server = require("http").createServer(app);
 const wss = new websocket.Server({ server });
+
 let drawingHistory = [];
+let players = []; // This will hold the players for turn rotation
+let currentTurnIndex = 0; // To track the current player
+let gameInterval; // Interval for game rounds
+let timerInterval; // Interval for timer updates
 
 app.use(express.static(__dirname));
 
@@ -38,8 +43,11 @@ wss.on("connection", (ws) => {
                 clients.set(ws, {
                     name: data.name,
                     id: data.id,
+                    painter: false,
                 });
+                console.log("Client added to map");
                 broadcastPlayers();
+                console.log("Broadcast completed");
                 break;
             case "chat":
                 broadcast(message.toString(), ws);
@@ -83,7 +91,6 @@ wss.on("connection", (ws) => {
                 startGame(ws);
                 break;
             case "timerUpdate":
-                
                 break;
         }
     });
@@ -91,64 +98,76 @@ wss.on("connection", (ws) => {
     ws.on("close", () => {
         console.log("Client disconnected");
         clients.delete(ws);
+        players = Array.from(clients.values()); // Sync players array with clients Map
         broadcastPlayers();
     });
 });
 
 function startGame(ws) {
-    // Start the game and broadcast the game state to all clients
+    players = Array.from(clients.values());
+    if (players.length === 0) {
+        console.warn("Cannot start game: no players connected.");
+        return;
+    }
+
     console.log("Game has started!");
 
-    // Notify all clients that the game has started
-    wss.clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify({ type: "gameStart" }));
-        }
-    });
-
-    // Initialize game state on server (e.g., timer, turn)
-    let timeLeft = 60;
-    let currentTurnIndex = 0;
-
     // Start the timer and broadcast updates every second
-    const timerInterval = setInterval(() => {
+    let timeLeft = 60; // Timer for the round
+    timerInterval = setInterval(() => {
         timeLeft--;
         wss.clients.forEach((client) => {
             if (client.readyState === WebSocket.OPEN) {
-                client.send(JSON.stringify({
-                    type: "timerUpdate",
-                    timeLeft: timeLeft,
-                }));
+                client.send(
+                    JSON.stringify({
+                        type: "timerUpdate",
+                        timeLeft: timeLeft,
+                    })
+                );
             }
         });
 
         if (timeLeft <= 0) {
             clearInterval(timerInterval);
+            rotateTurn(); // Move to the next player when the time is up
         }
     }, 1000);
 
-    // Handle turn rotation every `turnDuration`
+    // Handle turn rotation every `turnDuration` (1 minute per turn)
     const turnDuration = 60 * 1000; // 1 minute per turn, for example
-    const gameInterval = setInterval(() => {
+    gameInterval = setInterval(() => {
         rotateTurn();
     }, turnDuration);
 }
 
 function rotateTurn() {
-    const players = Array.from(clients.values());
+    players = Array.from(clients.values());
     if (players.length === 0) return;
 
     // Update the painter (reset previous, set new one)
-    currentTurnIndex = (currentTurnIndex + 1) % players.length;
+    const previousPlayer = players[currentTurnIndex];
+    const nextPlayerIndex = (currentTurnIndex + 1) % players.length;
+    const nextPlayer = players[nextPlayerIndex];
 
-    const currentPlayer = players[currentTurnIndex];
+    // Reset previous painter
+    broadcastPainterUpdate(previousPlayer.id, false);
+
+    // Set new painter
+    currentTurnIndex = nextPlayerIndex;
+    broadcastPainterUpdate(nextPlayer.id, true);
+}
+
+function broadcastPainterUpdate(playerId, painterStatus) {
+    // Broadcast the painter update to all clients
     wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify({
-                type: "updatePainter",
-                playerId: currentPlayer.id,
-                painter: currentPlayer.id === currentPlayer.id,
-            }));
+            client.send(
+                JSON.stringify({
+                    type: "updatePainter",
+                    playerId: playerId,
+                    painter: painterStatus,
+                })
+            );
         }
     });
 }
@@ -164,10 +183,8 @@ function broadcast(message, sender) {
 }
 
 function broadcastPlayers() {
-    const playerData = Array.from(clients).map(([_, client]) => ({
-        name: client.name,
-        id: client.id,
-    }));
+    const playerData = Array.from(clients.values());
+    console.log("Broadcasting players:", playerData);
 
     const message = JSON.stringify({
         type: "players",
@@ -179,6 +196,8 @@ function broadcastPlayers() {
             client.send(message);
         }
     });
+
+    console.log("Broadcasting players:", playerData);
 }
 
 server.listen(PORT, () => {

@@ -16,6 +16,7 @@ let turnDuration = 60000; // 1 minute in milliseconds
 let currentTurnIndex = 0;
 let timerDisplay;
 let timeLeft;
+const players = [];
 
 document.addEventListener("DOMContentLoaded", () => {
     const joinForm = document.querySelector("#join-form");
@@ -81,6 +82,7 @@ document.addEventListener("keydown", (e) => {
 
 function joinGame() {
     console.log("joining game");
+    
     playerName = document.querySelector("#playerName").value;
     if (!playerName) return;
     let previousPlayers = [];
@@ -169,16 +171,26 @@ function joinGame() {
                     });
                     break;
                 case "updatePainter":
-                    playerData.painter = data.painter;
-                    // Optional: Update UI to show painter status
-                    if (!playerData.painter) {
-                        canvas.style.cursor = "not-allowed";
-                    } else {
-                        canvas.style.cursor = "crosshair";
+                    // Update the player data with the painter information
+                    const playerId = data.playerId;
+                    const painter = data.painter;
+                    const playerElement = document.querySelector(
+                        `[data-player-id="${playerId}"]`
+                    );
+
+                    // Update the UI to reflect the painter status
+                    if (playerElement) {
+                        if (painter) {
+                            playerElement.classList.add("painter");
+                            canvas.style.cursor = "crosshair";
+                        } else {
+                            playerElement.classList.remove("painter");
+                            canvas.style.cursor = "not-allowed";
+                        }
                     }
                     break;
                 case "startGame":
-                    startGameTurns();
+                    startGameTurns(); // Start the game turns on receiving the game start signal
                     break;
                 case "timerUpdate":
                     console.log("Timer updated:", data.timeLeft); // Log the updated timer
@@ -224,23 +236,33 @@ function joinGame() {
 
     // Helper function to handle "players" messages
     function handlePlayers(data) {
-        console.log("Current players and their painter status:", data.players);
-        data.players.forEach((player) => {
-            console.log(
-                `Player: ${player.name}, Painter: ${playerData.painter}`
-            );
-        });
-
-        const chatBox = document.querySelector(".chat-box");
-
+        console.log("Raw players data received:", data);
+        console.log("Previous players:", previousPlayers);
+    
         if (!Array.isArray(data.players)) {
             console.warn("Invalid players data:", data);
             return;
         }
-
+    
+        console.log("Current players and their painter status:", data.players);
+        data.players.forEach((player) => {
+            console.log(
+                `Player: ${player.name}, Painter: ${player.painter}`
+            );
+        });
+    
+        const chatBox = document.querySelector(".chat-box");
+    
         if (data.players.length > previousPlayers.length) {
-            const newPlayer = data.players[data.players.length - 1];
-            chatBox.innerHTML += `<li class="connection-message"><span>${newPlayer.name} has connected</span></li>`;
+            const newPlayer = data.players.find(
+                (player) =>
+                    !previousPlayers.some(
+                        (prevPlayer) => prevPlayer.id === player.id
+                    )
+            );
+            if (newPlayer) {
+                chatBox.innerHTML += `<li class="connection-message"><span>${newPlayer.name} has connected</span></li>`;
+            }
         } else if (data.players.length < previousPlayers.length) {
             const disconnectedPlayer = previousPlayers.find(
                 (prevPlayer) =>
@@ -252,10 +274,11 @@ function joinGame() {
                 chatBox.innerHTML += `<li class="disconnection-message"><span>${disconnectedPlayer.name} has disconnected</span></li>`;
             }
         }
-
+    
         updatePlayerList(data.players);
         previousPlayers = [...data.players];
     }
+    
 
     // Helper function to handle "chat" messages
     function handleChat(data) {
@@ -384,6 +407,7 @@ function stopDrawing() {
 
 function updatePlayerList(players) {
     const playerList = document.querySelector("#players");
+    console.log("Updating player list with:", players);
     playerList.innerHTML = players
         .map(
             (player) =>
