@@ -8,6 +8,9 @@ let currentColor = "#000000";
 const PORT = window.CONFIG.PORT || 3000;
 let strokeHistory = [];
 let currentStroke = [];
+let playerData = {
+    painter: false,
+};
 
 document.addEventListener("DOMContentLoaded", () => {
     const joinForm = document.querySelector("#join-form");
@@ -23,14 +26,23 @@ document.addEventListener("DOMContentLoaded", () => {
 document.querySelectorAll(".color-btn").forEach((btn) => {
     btn.style.backgroundColor = btn.dataset.color;
     btn.addEventListener("click", () => {
-        document.querySelectorAll(".color-btn").forEach((b) => b.classList.remove("active"));
+        document
+            .querySelectorAll(".color-btn")
+            .forEach((b) => b.classList.remove("active"));
         btn.classList.add("active");
         currentColor = btn.dataset.color;
     });
 });
 
-document.querySelector("#clearBtn").addEventListener("click", clearCanvas);
-document.querySelector("#undoBtn").addEventListener("click", undo);
+document.querySelector("#clearBtn").addEventListener("click", () => {
+    if (!playerData.painter) return;
+    clearCanvas();
+});
+
+document.querySelector("#undoBtn").addEventListener("click", () => {
+    if (!playerData.painter) return;
+    undo();
+});
 
 canvas.addEventListener("touchstart", (e) => {
     e.preventDefault();
@@ -46,8 +58,8 @@ canvas.addEventListener("touchmove", (e) => {
 
 canvas.addEventListener("touchend", stopDrawing);
 
-document.addEventListener('keydown', (e) => {
-    if (e.ctrlKey && e.key === 'z') {
+document.addEventListener("keydown", (e) => {
+    if (e.ctrlKey && e.key === "z") {
         undo();
     }
 });
@@ -73,11 +85,14 @@ function joinGame() {
         ws.onopen = () => {
             if (ws.readyState === WebSocket.OPEN) {
                 document.querySelector(".login-screen").style.display = "none";
-                document.querySelector(".game-container").style.display = "flex";
+                document.querySelector(".game-container").style.display =
+                    "flex";
                 document.querySelector("#chatInput").focus();
 
                 const sendBtn = document.querySelector("#sendBtn");
                 sendBtn.addEventListener("click", sendMessage);
+
+                playerData.painter = true;
 
                 ws.send(
                     JSON.stringify({
@@ -85,6 +100,7 @@ function joinGame() {
                         name: playerName,
                         id: playerId,
                         status: "connected",
+                        painter: playerData.painter
                     })
                 );
             }
@@ -126,22 +142,56 @@ function joinGame() {
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
                     strokeHistory.forEach((stroke) => {
                         stroke.forEach((point) => {
-                            drawLine(point.x0, point.y0, point.x1, point.y1, point.color, point.width);
+                            drawLine(
+                                point.x0,
+                                point.y0,
+                                point.x1,
+                                point.y1,
+                                point.color,
+                                point.width
+                            );
                         });
                     });
+                    break;
+                case "updatePainter":
+                    playerData.painter = data.painter;
+                    // Optional: Update UI to show painter status
+                    if (!playerData.painter) {
+                        canvas.style.cursor = "not-allowed";
+                    } else {
+                        canvas.style.cursor = "crosshair";
+                    }
                     break;
                 default:
                     console.warn("Unknown message type received:", data.type);
             }
         } catch (error) {
-            console.error("Error parsing or handling WebSocket message:", error, event.data);
+            console.error(
+                "Error parsing or handling WebSocket message:",
+                error,
+                event.data
+            );
         }
     };
 
     // Helper function to handle "draw" messages
     function handleDraw(data) {
-        if (data.x0 != null && data.y0 != null && data.x1 != null && data.y1 != null && data.color && data.width) {
-            drawLine(data.x0, data.y0, data.x1, data.y1, data.color, data.width);
+        if (
+            data.x0 != null &&
+            data.y0 != null &&
+            data.x1 != null &&
+            data.y1 != null &&
+            data.color &&
+            data.width
+        ) {
+            drawLine(
+                data.x0,
+                data.y0,
+                data.x1,
+                data.y1,
+                data.color,
+                data.width
+            );
         } else {
             console.warn("Invalid draw data:", data);
         }
@@ -149,6 +199,12 @@ function joinGame() {
 
     // Helper function to handle "players" messages
     function handlePlayers(data) {
+
+        console.log("Current players and their painter status:", data.players);
+    data.players.forEach(player => {
+        console.log(`Player: ${player.name}, Painter: ${playerData.painter}`);
+    });
+
         const chatBox = document.querySelector(".chat-box");
 
         if (!Array.isArray(data.players)) {
@@ -161,7 +217,10 @@ function joinGame() {
             chatBox.innerHTML += `<li class="connection-message"><span>${newPlayer.name} has connected</span></li>`;
         } else if (data.players.length < previousPlayers.length) {
             const disconnectedPlayer = previousPlayers.find(
-                (prevPlayer) => !data.players.some((currentPlayer) => currentPlayer.id === prevPlayer.id)
+                (prevPlayer) =>
+                    !data.players.some(
+                        (currentPlayer) => currentPlayer.id === prevPlayer.id
+                    )
             );
             if (disconnectedPlayer) {
                 chatBox.innerHTML += `<li class="disconnection-message"><span>${disconnectedPlayer.name} has disconnected</span></li>`;
@@ -182,8 +241,13 @@ function joinGame() {
             return;
         }
 
-        const localTime = new Date(data.timestamp).toLocaleTimeString([], timeOptions);
-        chatBox.innerHTML += `<li><span>${data.sender}${" "}</span><span>${localTime}${" "}</span><span>${
+        const localTime = new Date(data.timestamp).toLocaleTimeString(
+            [],
+            timeOptions
+        );
+        chatBox.innerHTML += `<li><span>${
+            data.sender
+        }${" "}</span><span>${localTime}${" "}</span><span>${
             data.message
         }${" "}</span></li>`;
     }
@@ -238,11 +302,13 @@ function sendMessage(e) {
 }
 
 function startDrawing(event) {
+    if (!playerData.painter) return;
     isDrawing = true;
     [lastX, lastY] = [event.offsetX, event.offsetY];
 }
 
 function draw(event) {
+    if (!playerData.painter) return;
     if (!isDrawing) return;
     const width = document.querySelector("#brushSize").value;
 
@@ -292,7 +358,12 @@ function stopDrawing() {
 
 function updatePlayerList(players) {
     const playerList = document.querySelector("#players");
-    playerList.innerHTML = players.map((player) => `<li>${player.name}</li>`).join("");
+    playerList.innerHTML = players
+        .map(
+            (player) =>
+                `<li>${player.name} ${playerData.painter ? "(Painter)" : ""}</li>`
+        )
+        .join("");
 }
 
 function resizeCanvas() {
@@ -325,16 +396,25 @@ function undo() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Redraws remaining strokes
-    strokeHistory.forEach(stroke => {
-        stroke.forEach(point => {
-            drawLine(point.x0, point.y0, point.x1, point.y1, point.color, point.width);
+    strokeHistory.forEach((stroke) => {
+        stroke.forEach((point) => {
+            drawLine(
+                point.x0,
+                point.y0,
+                point.x1,
+                point.y1,
+                point.color,
+                point.width
+            );
         });
     });
 
     if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({
-            type: "undo",
-            history: strokeHistory
-        }));
+        ws.send(
+            JSON.stringify({
+                type: "undo",
+                history: strokeHistory,
+            })
+        );
     }
 }

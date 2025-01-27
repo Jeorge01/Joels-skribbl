@@ -1,0 +1,29 @@
+{
+    "englishWords": [
+        "apple",
+        "banana",
+        "cherry",
+        "dragonfruit",
+        "elderberry",
+        "fig",
+        "grape"
+    ],
+
+    "swedishWords": [
+        "äpple",
+        "banan",
+        "körsbär",
+        "drakfrukt",
+        "fläderbär",
+        "fikon",
+        "druva",
+        "jordgubbe",
+        "hallon",
+        "blåbär",
+        "lingon",
+        "päron",
+        "apelsin",
+        "citron",
+        "vattenmelon"
+    ]
+}
