@@ -11,6 +11,11 @@ let currentStroke = [];
 let playerData = {
     painter: false,
 };
+let gameInterval;
+let turnDuration = 60000; // 1 minute in milliseconds
+let currentTurnIndex = 0;
+let timerDisplay;
+let timeLeft;
 
 document.addEventListener("DOMContentLoaded", () => {
     const joinForm = document.querySelector("#join-form");
@@ -42,6 +47,16 @@ document.querySelector("#clearBtn").addEventListener("click", () => {
 document.querySelector("#undoBtn").addEventListener("click", () => {
     if (!playerData.painter) return;
     undo();
+});
+
+document.querySelector("#startGameBtn").addEventListener("click", () => {
+    startGameTurns();
+    console.log("Starting game turns");
+    ws.send(
+        JSON.stringify({
+            type: "startGame",
+        })
+    );
 });
 
 canvas.addEventListener("touchstart", (e) => {
@@ -92,7 +107,7 @@ function joinGame() {
                 const sendBtn = document.querySelector("#sendBtn");
                 sendBtn.addEventListener("click", sendMessage);
 
-                playerData.painter = true;
+                // playerData.painter = true;
 
                 ws.send(
                     JSON.stringify({
@@ -100,7 +115,7 @@ function joinGame() {
                         name: playerName,
                         id: playerId,
                         status: "connected",
-                        painter: playerData.painter
+                        painter: playerData.painter,
                     })
                 );
             }
@@ -162,6 +177,16 @@ function joinGame() {
                         canvas.style.cursor = "crosshair";
                     }
                     break;
+                case "startGame":
+                    startGameTurns();
+                    break;
+                case "timerUpdate":
+                    console.log("Timer updated:", data.timeLeft); // Log the updated timer
+                    // Update the DOM with the new time
+                    document.querySelector(
+                        "#timer"
+                    ).textContent = `${data.timeLeft}s`;
+                    break;
                 default:
                     console.warn("Unknown message type received:", data.type);
             }
@@ -199,11 +224,12 @@ function joinGame() {
 
     // Helper function to handle "players" messages
     function handlePlayers(data) {
-
         console.log("Current players and their painter status:", data.players);
-    data.players.forEach(player => {
-        console.log(`Player: ${player.name}, Painter: ${playerData.painter}`);
-    });
+        data.players.forEach((player) => {
+            console.log(
+                `Player: ${player.name}, Painter: ${playerData.painter}`
+            );
+        });
 
         const chatBox = document.querySelector(".chat-box");
 
@@ -361,7 +387,9 @@ function updatePlayerList(players) {
     playerList.innerHTML = players
         .map(
             (player) =>
-                `<li>${player.name} ${playerData.painter ? "(Painter)" : ""}</li>`
+                `<li>${player.name} ${
+                    playerData.painter ? "(Painter)" : ""
+                }</li>`
         )
         .join("");
 }
@@ -417,4 +445,56 @@ function undo() {
             })
         );
     }
+}
+
+function startGameTurns() {
+    timeLeft = 60;
+    document.querySelector("#timer").textContent = `${timeLeft}s`;
+
+    // Send timer updates to all clients every second
+    const timerInterval = setInterval(() => {
+        timeLeft--;
+        ws.send(
+            JSON.stringify({
+                type: "timerUpdate",
+                timeLeft: timeLeft,
+            })
+        );
+
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+        }
+    }, 1000);
+
+    // Set up turn rotation interval
+    gameInterval = setInterval(() => {
+        timeLeft = 60;
+        rotateTurn();
+    }, turnDuration);
+}
+
+function rotateTurn() {
+    const players = document.querySelector("#players").children;
+    if (players.length === 0) return;
+
+    // Reset previous painter
+    ws.send(
+        JSON.stringify({
+            type: "updatePainter",
+            playerId: players[currentTurnIndex].dataset.playerId,
+            painter: false,
+        })
+    );
+
+    // Move to next player
+    currentTurnIndex = (currentTurnIndex + 1) % players.length;
+
+    // Set new painter
+    ws.send(
+        JSON.stringify({
+            type: "updatePainter",
+            playerId: players[currentTurnIndex].dataset.playerId,
+            painter: true,
+        })
+    );
 }

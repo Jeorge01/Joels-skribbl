@@ -69,12 +69,21 @@ wss.on("connection", (ws) => {
             case "undo":
                 wss.clients.forEach((client) => {
                     if (client !== ws && client.readyState === WebSocket.OPEN) {
-                        client.send(JSON.stringify({
-                            type: "undo",
-                            history: data.history
-                        }));
+                        client.send(
+                            JSON.stringify({
+                                type: "undo",
+                                history: data.history,
+                            })
+                        );
                     }
                 });
+                break;
+            case "startGame":
+                console.log("Game started!");
+                startGame(ws);
+                break;
+            case "timerUpdate":
+                
                 break;
         }
     });
@@ -86,8 +95,67 @@ wss.on("connection", (ws) => {
     });
 });
 
+function startGame(ws) {
+    // Start the game and broadcast the game state to all clients
+    console.log("Game has started!");
+
+    // Notify all clients that the game has started
+    wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({ type: "gameStart" }));
+        }
+    });
+
+    // Initialize game state on server (e.g., timer, turn)
+    let timeLeft = 60;
+    let currentTurnIndex = 0;
+
+    // Start the timer and broadcast updates every second
+    const timerInterval = setInterval(() => {
+        timeLeft--;
+        wss.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify({
+                    type: "timerUpdate",
+                    timeLeft: timeLeft,
+                }));
+            }
+        });
+
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+        }
+    }, 1000);
+
+    // Handle turn rotation every `turnDuration`
+    const turnDuration = 60 * 1000; // 1 minute per turn, for example
+    const gameInterval = setInterval(() => {
+        rotateTurn();
+    }, turnDuration);
+}
+
+function rotateTurn() {
+    const players = Array.from(clients.values());
+    if (players.length === 0) return;
+
+    // Update the painter (reset previous, set new one)
+    currentTurnIndex = (currentTurnIndex + 1) % players.length;
+
+    const currentPlayer = players[currentTurnIndex];
+    wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({
+                type: "updatePainter",
+                playerId: currentPlayer.id,
+                painter: currentPlayer.id === currentPlayer.id,
+            }));
+        }
+    });
+}
+
 function broadcast(message, sender) {
-    const messageToSend = typeof message === "string" ? message : JSON.stringify(message);
+    const messageToSend =
+        typeof message === "string" ? message : JSON.stringify(message);
     wss.clients.forEach((client) => {
         if (client !== sender && client.readyState === WebSocket.OPEN) {
             client.send(messageToSend);
