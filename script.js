@@ -13,10 +13,12 @@ let playerData = {
 };
 let gameInterval;
 let turnDuration = 60000; // 1 minute in milliseconds
-let currentTurnIndex = 0;
 let timerDisplay;
 let timeLeft;
-const players = [];
+
+let players = [];
+let currentTurnIndex = 0;
+let myPlayerId = null;
 
 document.addEventListener("DOMContentLoaded", () => {
     const joinForm = document.querySelector("#join-form");
@@ -82,7 +84,7 @@ document.addEventListener("keydown", (e) => {
 
 function joinGame() {
     console.log("joining game");
-    
+
     playerName = document.querySelector("#playerName").value;
     if (!playerName) return;
     let previousPlayers = [];
@@ -140,8 +142,15 @@ function joinGame() {
             const data = JSON.parse(decodedData); // Parse JSON string
             // console.log("Decoded and parsed data:", data);
 
+            console.log("Received message type:", data.type); // Add this line
+
             // Handle message types
             switch (data.type) {
+                case "join":
+                    // Set the player's unique ID when they join
+                    myPlayerId = data.playerId;
+                    console.log("Player joined with ID:", myPlayerId);
+                    break;
                 case "draw":
                     handleDraw(data);
                     break;
@@ -171,23 +180,28 @@ function joinGame() {
                     });
                     break;
                 case "updatePainter":
-                    // Update the player data with the painter information
-                    const playerId = data.playerId;
-                    const painter = data.painter;
-                    const playerElement = document.querySelector(
-                        `[data-player-id="${playerId}"]`
-                    );
+                    console.log("players", players);
+                    const updatedPlayerId = data.playerId;
+                    const isPainter = data.painter;
 
-                    // Update the UI to reflect the painter status
-                    if (playerElement) {
-                        if (painter) {
-                            playerElement.classList.add("painter");
-                            canvas.style.cursor = "crosshair";
-                        } else {
-                            playerElement.classList.remove("painter");
-                            canvas.style.cursor = "not-allowed";
-                        }
+                    // Find the player and update their painter status
+                    const playerIndex = players.findIndex(
+                        (player) => player.id === updatedPlayerId
+                    );
+                    if (playerIndex !== -1) {
+                        players[playerIndex].painter = isPainter; // Update status
                     }
+
+                    // Check if this client is the painter
+                    if (updatedPlayerId === myPlayerId) {
+                        playerData.painter = isPainter;
+                    }
+
+                    console.log("Painter updated:", players);
+                    console.log("Am I the painter?", playerData.painter);
+
+                    updatePlayerList(players); // Refresh UI
+                    console.log("players again", players);
                     break;
                 case "startGame":
                     startGameTurns(); // Start the game turns on receiving the game start signal
@@ -198,6 +212,20 @@ function joinGame() {
                     document.querySelector(
                         "#timer"
                     ).textContent = `${data.timeLeft}s`;
+                    break;
+                case "updatePlayers":
+                    players = data.players;
+
+                    // If myPlayerId is not set, find and set it
+                    if (!myPlayerId) {
+                        const me = players.find((player) => player.name === myName); // Match by name or another unique identifier
+                        if (me) {
+                            myPlayerId = me.id;
+                            console.log("My Player ID set from players list:", myPlayerId);
+                        }
+                    }
+                
+                    updatePlayerList(players);
                     break;
                 default:
                     console.warn("Unknown message type received:", data.type);
@@ -238,21 +266,19 @@ function joinGame() {
     function handlePlayers(data) {
         console.log("Raw players data received:", data);
         console.log("Previous players:", previousPlayers);
-    
+
         if (!Array.isArray(data.players)) {
             console.warn("Invalid players data:", data);
             return;
         }
-    
+
         console.log("Current players and their painter status:", data.players);
         data.players.forEach((player) => {
-            console.log(
-                `Player: ${player.name}, Painter: ${player.painter}`
-            );
+            console.log(`Player: ${player.name}, Painter: ${player.painter}`);
         });
-    
+
         const chatBox = document.querySelector(".chat-box");
-    
+
         if (data.players.length > previousPlayers.length) {
             const newPlayer = data.players.find(
                 (player) =>
@@ -274,11 +300,10 @@ function joinGame() {
                 chatBox.innerHTML += `<li class="disconnection-message"><span>${disconnectedPlayer.name} has disconnected</span></li>`;
             }
         }
-    
+
         updatePlayerList(data.players);
         previousPlayers = [...data.players];
     }
-    
 
     // Helper function to handle "chat" messages
     function handleChat(data) {
@@ -357,7 +382,16 @@ function startDrawing(event) {
 }
 
 function draw(event) {
-    if (!playerData.painter) return;
+    console.log("players", players);
+    console.log("myPlayerId", myPlayerId);
+    const currentPainter = players.find((player) => player.painter);
+
+    // Check if the current user is the painter
+    if (!currentPainter || currentPainter.id !== myPlayerId) {
+        console.warn("You are not the painter!");
+        return;
+    }
+
     if (!isDrawing) return;
     const width = document.querySelector("#brushSize").value;
 
@@ -411,9 +445,9 @@ function updatePlayerList(players) {
     playerList.innerHTML = players
         .map(
             (player) =>
-                `<li>${player.name} ${
-                    playerData.painter ? "(Painter)" : ""
-                }</li>`
+                `<li data-player-id="${player.id}" ${
+                    player.painter ? 'class="painter"' : ""
+                }>${player.name} ${player.painter ? "(Painter)" : ""}</li>`
         )
         .join("");
 }
@@ -472,6 +506,7 @@ function undo() {
 }
 
 function startGameTurns() {
+    console.log(players);
     timeLeft = 60;
     document.querySelector("#timer").textContent = `${timeLeft}s`;
 
@@ -498,26 +533,27 @@ function startGameTurns() {
 }
 
 function rotateTurn() {
-    const players = document.querySelector("#players").children;
     if (players.length === 0) return;
 
-    // Reset previous painter
+    // Reset the previous painter
+    const previousPlayerId = players[currentTurnIndex].id;
     ws.send(
         JSON.stringify({
             type: "updatePainter",
-            playerId: players[currentTurnIndex].dataset.playerId,
+            playerId: previousPlayerId,
             painter: false,
         })
     );
 
-    // Move to next player
+    // Move to the next player
     currentTurnIndex = (currentTurnIndex + 1) % players.length;
 
-    // Set new painter
+    // Set the new painter
+    const newPlayerId = players[currentTurnIndex].id;
     ws.send(
         JSON.stringify({
             type: "updatePainter",
-            playerId: players[currentTurnIndex].dataset.playerId,
+            playerId: newPlayerId,
             painter: true,
         })
     );
