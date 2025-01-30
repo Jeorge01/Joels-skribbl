@@ -211,6 +211,9 @@ wss.on("connection", (ws) => {
                         }
                     });
                     break;
+                case "rotateTurn":
+                    rotateTurn();
+                    break;
                 default:
                     console.warn("Unknown message type received:", data.type);
             }
@@ -323,10 +326,12 @@ function startTimer() {
         timeLeft--;
         wss.clients.forEach((client) => {
             if (client.readyState === WebSocket.OPEN) {
-                client.send(JSON.stringify({
-                    type: "timerUpdate",
-                    timeLeft: timeLeft,
-                }));
+                client.send(
+                    JSON.stringify({
+                        type: "timerUpdate",
+                        timeLeft: timeLeft,
+                    })
+                );
             }
         });
 
@@ -341,11 +346,17 @@ function startTimer() {
  * ROTATE TURN *
  *******************/
 function rotateTurn() {
-    const wordChoices = chooseWords();
+    // First update the painter status
+    const previousPlayer = players[currentTurnIndex];
+    broadcastPainterUpdate(previousPlayer.id, false);  // Remove painter status from current player
+    
+    // Rotate to next player
     currentTurnIndex = (currentTurnIndex + 1) % players.length;
     const currentPlayer = players[currentTurnIndex];
-
-    // Find the WebSocket connection for the new painter
+    broadcastPainterUpdate(currentPlayer.id, true);  // Set new player as painter
+    
+    // Then send word choices to new painter
+    const wordChoices = chooseWords();
     const painter = Array.from(clients.entries()).find(
         ([_, client]) => client.id === currentPlayer.id
     );

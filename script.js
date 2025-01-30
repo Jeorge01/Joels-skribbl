@@ -264,7 +264,11 @@ function joinGame() {
                     updatePlayerList(players);
                     break;
                 case "wordChoices":
-                    if (playerData.painter) {
+                    console.log("wordchoices script.js", data);
+                    const currentPainter = players.find(
+                        (player) => player.painter
+                    );
+                    if (currentPainter && currentPainter.id === myPlayerId) {
                         const wordSelectionDiv = document.createElement("div");
                         wordSelectionDiv.className = "word-selection";
                         wordSelectionDiv.innerHTML = `
