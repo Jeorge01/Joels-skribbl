@@ -19,9 +19,19 @@ let timeLeft;
 let players = [];
 let currentTurnIndex = 0;
 let myPlayerId = null;
+let words = [];
+// let wordSelectionDiv = document.querySelector(".word-selection");
 
 document.addEventListener("DOMContentLoaded", () => {
     const joinForm = document.querySelector("#join-form");
+
+    // Fetch words from words.json
+    fetch("words.json")
+        .then((response) => response.json())
+        .then((data) => {
+            words = data.englishWords;
+            console.log("Words loaded:", words);
+        });
 
     joinForm.addEventListener("submit", (e) => {
         e.preventDefault();
@@ -81,6 +91,27 @@ document.addEventListener("keydown", (e) => {
         undo();
     }
 });
+
+// wordSelectionDiv.addEventListener("click", (e) => {
+//     if (e.target.classList.contains("word-choice")) {
+//         const selectedWord = e.target.textContent;
+//         ws.send(
+//             JSON.stringify({
+//                 type: "wordSelected",
+//                 word: selectedWord,
+//             })
+//         );
+
+//         // Tell server to start the timer
+//         ws.send(
+//             JSON.stringify({
+//                 type: "startTimer",
+//             })
+//         );
+
+//         wordSelectionDiv.remove();
+//     }
+// });
 
 function joinGame() {
     console.log("joining game");
@@ -180,7 +211,7 @@ function joinGame() {
                     });
                     break;
                 case "updatePainter":
-                    console.log("players", players);
+                    // console.log("players", players);
                     const updatedPlayerId = data.playerId;
                     const isPainter = data.painter;
 
@@ -201,7 +232,7 @@ function joinGame() {
                     console.log("Am I the painter?", playerData.painter);
 
                     updatePlayerList(players); // Refresh UI
-                    console.log("players again", players);
+                    // console.log("players again", players);
                     break;
                 case "startGame":
                     startGameTurns(); // Start the game turns on receiving the game start signal
@@ -218,15 +249,56 @@ function joinGame() {
 
                     // If myPlayerId is not set, find and set it
                     if (!myPlayerId) {
-                        const me = players.find((player) => player.name === myName); // Match by name or another unique identifier
+                        const me = players.find(
+                            (player) => player.name === myName
+                        ); // Match by name or another unique identifier
                         if (me) {
                             myPlayerId = me.id;
-                            console.log("My Player ID set from players list:", myPlayerId);
+                            console.log(
+                                "My Player ID set from players list:",
+                                myPlayerId
+                            );
                         }
                     }
-                
+
                     updatePlayerList(players);
                     break;
+                case "wordChoices":
+                    if (playerData.painter) {
+                        const wordSelectionDiv = document.createElement("div");
+                        wordSelectionDiv.className = "word-selection";
+                        wordSelectionDiv.innerHTML = `
+                                <div class="word-selection-container">
+                                    <h3>Choose a word to draw:</h3>
+                                    <div class="word-buttons">
+                                        ${data.words
+                                            .map(
+                                                (word) => `
+                                            <button class="word-choice">${word}</button>
+                                        `
+                                            )
+                                            .join("")}
+                                    </div>
+                                </div>
+                            `;
+
+                        document.body.appendChild(wordSelectionDiv);
+
+                        wordSelectionDiv.addEventListener("click", (e) => {
+                            if (e.target.classList.contains("word-choice")) {
+                                const selectedWord = e.target.textContent;
+                                ws.send(
+                                    JSON.stringify({
+                                        type: "wordSelected",
+                                        word: selectedWord,
+                                    })
+                                );
+                                wordSelectionDiv.remove();
+                            }
+                        });
+                    }
+                    break;
+
                 default:
                     console.warn("Unknown message type received:", data.type);
             }
@@ -382,13 +454,13 @@ function startDrawing(event) {
 }
 
 function draw(event) {
-    console.log("players", players);
-    console.log("myPlayerId", myPlayerId);
+    // console.log("players", players);
+    // console.log("myPlayerId", myPlayerId);
     const currentPainter = players.find((player) => player.painter);
 
     // Check if the current user is the painter
     if (!currentPainter || currentPainter.id !== myPlayerId) {
-        console.warn("You are not the painter!");
+        // console.warn("You are not the painter!");
         return;
     }
 
@@ -505,37 +577,67 @@ function undo() {
     }
 }
 
-function startGameTurns() {
-    console.log(players);
-    timeLeft = 60;
-    document.querySelector("#timer").textContent = `${timeLeft}s`;
+function chooseWords() {
+    console.log("Choosing words...");
+    return new Promise((resolve) => {
+        const randomWords = words.sort(() => 0.5 - Math.random()).slice(0, 3);
 
-    // Send timer updates to all clients every second
-    const timerInterval = setInterval(() => {
-        timeLeft--;
-        ws.send(
-            JSON.stringify({
-                type: "timerUpdate",
-                timeLeft: timeLeft,
-            })
-        );
+        if (playerData.painter) {
+            const wordSelectionDiv = document.createElement("div");
+            wordSelectionDiv.className = "word-selection";
+            wordSelectionDiv.innerHTML = `
+                <div class="word-selection-container">
+                    <h3>Choose a word to draw:</h3>
+                    <div class="word-buttons">
+                        ${randomWords
+                            .map(
+                                (word) => `
+                            <button class="word-choice">${word}</button>
+                        `
+                            )
+                            .join("")}
+                    </div>
+                </div>
+            `;
 
-        if (timeLeft <= 0) {
-            clearInterval(timerInterval);
+            document.body.appendChild(wordSelectionDiv);
+
+            const handleWordSelection = (e) => {
+                if (e.target.classList.contains("word-choice")) {
+                    const selectedWord = e.target.textContent;
+                    ws.send(
+                        JSON.stringify({
+                            type: "wordSelected",
+                            word: selectedWord,
+                        })
+                    );
+                    wordSelectionDiv.remove();
+                    resolve();
+                }
+            };
+
+            wordSelectionDiv.addEventListener("click", handleWordSelection);
+        } else {
+            // For non-painters, resolve immediately
+            resolve();
         }
-    }, 1000);
-
-    // Set up turn rotation interval
-    gameInterval = setInterval(() => {
-        timeLeft = 60;
-        rotateTurn();
-    }, turnDuration);
+    });
 }
 
-function rotateTurn() {
+async function startGameTurns() {
+    console.log(players);
+
+    // Wait for word choices from server
+    // Timer will only start after word is selected
+    ws.send(
+        JSON.stringify({
+            type: "startGame",
+        })
+    );
+}
+async function rotateTurn() {
     if (players.length === 0) return;
 
-    // Reset the previous painter
     const previousPlayerId = players[currentTurnIndex].id;
     ws.send(
         JSON.stringify({
@@ -545,10 +647,8 @@ function rotateTurn() {
         })
     );
 
-    // Move to the next player
     currentTurnIndex = (currentTurnIndex + 1) % players.length;
 
-    // Set the new painter
     const newPlayerId = players[currentTurnIndex].id;
     ws.send(
         JSON.stringify({
@@ -557,4 +657,6 @@ function rotateTurn() {
             painter: true,
         })
     );
+
+    await chooseWords();
 }

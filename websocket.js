@@ -2,6 +2,7 @@ const websocket = require("ws");
 const express = require("express");
 const path = require("path");
 require("dotenv").config();
+const fs = require("fs");
 
 const WebSocket = websocket;
 const PORT = process.env.PORT || 3000;
@@ -14,6 +15,8 @@ let players = []; // This will hold the players for turn rotation
 let currentTurnIndex = 0; // To track the current player
 let gameInterval; // Interval for game rounds
 let timerInterval; // Interval for timer updates
+
+let words = [];
 
 app.use(express.static(__dirname));
 
@@ -134,6 +137,66 @@ wss.on("connection", (ws) => {
                 case "startGame":
                     console.log("Game started!");
                     startGame(ws);
+                    break;
+                case "wordChoices":
+                    if (playerData.painter) {
+                        const wordSelectionDiv = document.createElement("div");
+                        wordSelectionDiv.className = "word-selection";
+                        wordSelectionDiv.innerHTML = `
+                                <div class="word-selection-container">
+                                    <h3>Choose a word to draw:</h3>
+                                    <div class="word-buttons">
+                                        ${data.words
+                                            .map(
+                                                (word) => `
+                                            <button class="word-choice">${word}</button>
+                                        `
+                                            )
+                                            .join("")}
+                                    </div>
+                                </div>
+                            `;
+
+                        document.body.appendChild(wordSelectionDiv);
+
+                        wordSelectionDiv.addEventListener("click", (e) => {
+                            if (e.target.classList.contains("word-choice")) {
+                                const selectedWord = e.target.textContent;
+                                ws.send(
+                                    JSON.stringify({
+                                        type: "wordSelected",
+                                        word: selectedWord,
+                                    })
+                                );
+                                wordSelectionDiv.remove();
+
+                                // Start the timer after word selection
+                                timeLeft = 60;
+                                document.querySelector(
+                                    "#timer"
+                                ).textContent = `${timeLeft}s`;
+
+                                const timerInterval = setInterval(() => {
+                                    timeLeft--;
+                                    ws.send(
+                                        JSON.stringify({
+                                            type: "timerUpdate",
+                                            timeLeft: timeLeft,
+                                        })
+                                    );
+
+                                    if (timeLeft <= 0) {
+                                        clearInterval(timerInterval);
+                                    }
+                                }, 1000);
+                            }
+                        });
+                    }
+                    break;
+                case "wordSelected":
+                    console.log("Word selected, starting timer!");
+                    startTimer();
+                    break;
                 case "timerUpdate":
                     console.log("Timer updated:", data.timeLeft);
                     // No need for DOM updates here, just send the timer update to clients
@@ -168,6 +231,47 @@ wss.on("connection", (ws) => {
     });
 });
 
+/******************************
+ * LOAD WORDS FROM words.json *
+ ******************************/
+function loadWords() {
+    try {
+        const data = fs.readFileSync("words.json", "utf8");
+        console.log("Raw file content:", data); // Debugging
+
+        const parsedData = JSON.parse(data);
+
+        // Select the words based on the desired language
+        words = parsedData.englishWords || []; // Change to swedishWords if needed
+
+        if (!Array.isArray(words)) {
+            throw new Error(
+                "Words data is not an array. Check words.json structure!"
+            );
+        }
+
+        console.log(`Loaded ${words.length} words from words.json`);
+    } catch (error) {
+        console.error("Error loading words:", error);
+        words = []; // Prevent crashing
+    }
+}
+
+// Call this function once when the server starts
+loadWords();
+
+/***********************
+ * CHOOSE A RANDOM WORD *
+ ***********************/
+function chooseWords() {
+    // Get 3 random words from the words array
+    const words = JSON.parse(fs.readFileSync("words.json")).englishWords;
+    return words.sort(() => 0.5 - Math.random()).slice(0, 3);
+}
+
+/****************
+ * START GAME *
+ ****************/
 function startGame(ws) {
     players = Array.from(clients.values());
     if (players.length === 0) {
@@ -181,79 +285,84 @@ function startGame(ws) {
     const firstPlayer = players[0];
     firstPlayer.painter = true;
 
+    // Choose words and send to the first painter
+    const wordChoices = chooseWords();
+    const painterWs = Array.from(clients.entries()).find(
+        ([socket, client]) => client.id === firstPlayer.id
+    )?.[0];
+
+    if (painterWs && painterWs.readyState === WebSocket.OPEN) {
+        painterWs.send(
+            JSON.stringify({
+                type: "wordChoices",
+                words: wordChoices,
+            })
+        );
+    }
+
     // Update the painter status in the clients Map
     clients.forEach((clientData) => {
         clientData.painter = clientData.id === firstPlayer.id;
     });
 
     broadcastPlayers();
-
-    // Log to confirm the painter is set correctly
-    console.log(
-        `${firstPlayer.name} is the first painter: ${firstPlayer.painter}`
-    );
-
     broadcastPainterUpdate(firstPlayer.id, true);
 
-    // Start the timer
+    // Wait for word selection before starting timer
+    wss.once("wordSelected", () => {
+        startTimer();
+    });
+}
+
+/*******************
+ * STARTRT TIMER *
+ *******************/
+function startTimer() {
     let timeLeft = 60;
     timerInterval = setInterval(() => {
         timeLeft--;
         wss.clients.forEach((client) => {
             if (client.readyState === WebSocket.OPEN) {
-                client.send(
-                    JSON.stringify({
-                        type: "timerUpdate",
-                        timeLeft: timeLeft,
-                    })
-                );
+                client.send(JSON.stringify({
+                    type: "timerUpdate",
+                    timeLeft: timeLeft,
+                }));
             }
         });
 
         if (timeLeft <= 0) {
             clearInterval(timerInterval);
-            rotateTurn(); // Move to the next player when the time is up
+            rotateTurn();
         }
     }, 1000);
-
-    // Handle turn rotation every minute
-    const turnDuration = 60 * 1000;
-    gameInterval = setInterval(() => {
-        rotateTurn();
-    }, turnDuration);
 }
 
+/*******************
+ * ROTATE TURN *
+ *******************/
 function rotateTurn() {
-    if (players.length === 0) return;
+    const wordChoices = chooseWords();
+    currentTurnIndex = (currentTurnIndex + 1) % players.length;
+    const currentPlayer = players[currentTurnIndex];
 
-    // Reset previous painter
-    const previousPlayer = players[currentTurnIndex];
-    const nextPlayerIndex = (currentTurnIndex + 1) % players.length;
-    const nextPlayer = players[nextPlayerIndex];
+    // Find the WebSocket connection for the new painter
+    const painter = Array.from(clients.entries()).find(
+        ([_, client]) => client.id === currentPlayer.id
+    );
 
-    // Broadcast painter updates
-    broadcastPainterUpdate(previousPlayer.id, false);
-    broadcastPainterUpdate(nextPlayer.id, true);
-
-    // Update the painter status in the clients Map
-    clients.forEach((clientData) => {
-        if (clientData.id === previousPlayer.id) {
-            clientData.painter = false;
-        }
-        if (clientData.id === nextPlayer.id) {
-            clientData.painter = true;
-        }
-    });
-
-    // Update the global players array to reflect changes
-    players = Array.from(clients.values());
-
-    // Update currentTurnIndex
-    currentTurnIndex = nextPlayerIndex;
-
-    console.log(`Turn rotated: ${nextPlayer.name} is now the painter.`);
+    if (painter) {
+        painter[0].send(
+            JSON.stringify({
+                type: "wordChoices",
+                words: wordChoices,
+            })
+        );
+    }
 }
 
+/*********************************
+ * BROADCAST PAINTER UPDATE *
+ *********************************/
 function broadcastPainterUpdate(playerId, painterStatus) {
     // Update the painter status in the clients Map
     clients.forEach((clientData) => {
@@ -276,6 +385,30 @@ function broadcastPainterUpdate(playerId, painterStatus) {
     });
 }
 
+/*******************************************
+ * BROADCAST WORD CHOICES TO PAINTER *
+ *******************************************/
+function broadcastWordChoicesToPainter(painter, words) {
+    let painterWs = null;
+    clients.forEach((clientData, ws) => {
+        if (clientData.id === painter.id) {
+            painterWs = ws;
+        }
+    });
+
+    if (painterWs && painterWs.readyState === WebSocket.OPEN) {
+        painterWs.send(
+            JSON.stringify({
+                type: "wordSelection",
+                words: words, // Sending three words instead of one
+            })
+        );
+    }
+}
+
+/*********************************
+ * BROADCAST PLAYERS MESSAGES *
+ *********************************/
 function broadcast(message, sender) {
     const messageToSend =
         typeof message === "string" ? message : JSON.stringify(message);
@@ -286,6 +419,9 @@ function broadcast(message, sender) {
     });
 }
 
+/*********************************
+ * BROADCAST PLAYERS *
+ *********************************/
 function broadcastPlayers() {
     const playersList = Array.from(clients.values()).map((client) => ({
         id: client.id,
