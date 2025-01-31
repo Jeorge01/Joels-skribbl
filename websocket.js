@@ -15,6 +15,7 @@ let players = []; // This will hold the players for turn rotation
 let currentTurnIndex = 0; // To track the current player
 let gameInterval; // Interval for game rounds
 let timerInterval; // Interval for timer updates
+let currentWord = ""; // To store the current word
 
 let words = [];
 
@@ -186,7 +187,7 @@ wss.on("connection", (ws) => {
         case "wordSelected":
           console.log("Word selected, starting timer!");
           //Store selected word
-          const currentWord = data.word;
+          currentWord = data.word;
           // Send word only to the painter
 
           wss.clients.forEach((client) => {
@@ -341,6 +342,17 @@ function startTimer() {
 
     if (timeLeft <= 0) {
       clearInterval(timerInterval);
+      // Broadcast word reveal to all clients
+      wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(
+            JSON.stringify({
+              type: "wordReveal",
+              word: currentWord,
+            })
+          );
+        }
+      });
       rotateTurn();
     }
   }, 1000);

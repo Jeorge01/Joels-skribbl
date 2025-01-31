@@ -320,6 +320,20 @@ function joinGame() {
           }
           break;
 
+        case "wordReveal":
+          const wordReveal = document.createElement("div");
+          wordReveal.className = "word-reveal";
+          wordReveal.innerHTML = `<h3>The word was: ${data.word}</h3>`;
+          wordReveal.style.cssText =
+            "position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); z-index: 1000;";
+
+          document.body.appendChild(wordReveal);
+
+          // Remove the reveal after 3 seconds
+          setTimeout(() => {
+            wordReveal.remove();
+          }, 5000);
+          break;
         default:
           console.warn("Unknown message type received:", data.type);
       }
