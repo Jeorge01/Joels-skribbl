@@ -1,7 +1,9 @@
 ## Functions
+
 - Coded rooms so you can join friends
 - kick people
 - Customize rules, like max players and round lentgh
+- Fix the displaying of connected and disconnected players
 
 ## Game settings
 
@@ -18,13 +20,16 @@
 - [x] Word reveal after round
 
 ## Wordselection
+
 - [x] Randomize 3 words and have painter chose one
 - Be able to combine several wordpacks?
 - Make own wordpack
 
 ## Drawing
+
 - Bucket brush
 - basic shapes
 
 ## Organization code
+
 - Make cases for functions instead of coding everything in the case
