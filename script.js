@@ -92,26 +92,9 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-// wordSelectionDiv.addEventListener("click", (e) => {
-//     if (e.target.classList.contains("word-choice")) {
-//         const selectedWord = e.target.textContent;
-//         ws.send(
-//             JSON.stringify({
-//                 type: "wordSelected",
-//                 word: selectedWord,
-//             })
-//         );
-
-//         // Tell server to start the timer
-//         ws.send(
-//             JSON.stringify({
-//                 type: "startTimer",
-//             })
-//         );
-
-//         wordSelectionDiv.remove();
-//     }
-// });
+/******************************
+ * HANDLE JOIN GAME    *
+ ******************************/
 
 function joinGame() {
   console.log("joining game");
@@ -181,159 +164,55 @@ function joinGame() {
           myPlayerId = data.playerId;
           console.log("Player joined with ID:", myPlayerId);
           break;
+
         case "draw":
           handleDraw(data);
           break;
+
         case "players":
           handlePlayers(data);
           break;
+
         case "chat":
           handleChat(data);
           break;
+
         case "clear":
           clearCanvas(); // Clear the canvas on receiving a clear message
           break;
+
         case "undo":
-          strokeHistory = data.history;
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          strokeHistory.forEach((stroke) => {
-            stroke.forEach((point) => {
-              drawLine(
-                point.x0,
-                point.y0,
-                point.x1,
-                point.y1,
-                point.color,
-                point.width
-              );
-            });
-          });
+          handleUndo(data);
           break;
+
         case "updatePainter":
-          // console.log("players", players);
-          const updatedPlayerId = data.playerId;
-          const isPainter = data.painter;
-
-          // Find the player and update their painter status
-          const playerIndex = players.findIndex(
-            (player) => player.id === updatedPlayerId
-          );
-          if (playerIndex !== -1) {
-            players[playerIndex].painter = isPainter; // Update status
-          }
-
-          // Check if this client is the painter
-          if (updatedPlayerId === myPlayerId) {
-            playerData.painter = isPainter;
-
-            if (!isPainter) {
-              const wordDisplay = document.getElementById("current-word");
-              if (wordDisplay) {
-                wordDisplay.remove();
-              }
-            }
-          }
-
-          console.log("Painter updated:", players);
-          console.log("Am I the painter?", playerData.painter);
-
-          updatePlayerList(players); // Refresh UI
-          // console.log("players again", players);
+          handleUpdatePainter(data);
           break;
+
         case "startGame":
           startGameTurns(); // Start the game turns on receiving the game start signal
           break;
+
         case "timerUpdate":
-          console.log("Timer updated:", data.timeLeft); // Log the updated timer
-          // Update the DOM with the new time
-          document.querySelector("#timer").textContent = `${data.timeLeft}s`;
+          handleTimerUpdate(data);
           break;
+
         case "updatePlayers":
-          players = data.players;
-
-          // If myPlayerId is not set, find and set it
-          if (!myPlayerId) {
-            const me = players.find((player) => player.name === myName); // Match by name or another unique identifier
-            if (me) {
-              myPlayerId = me.id;
-              console.log("My Player ID set from players list:", myPlayerId);
-            }
-          }
-
-          updatePlayerList(players);
+          handleUpdatePlayers(data);
           break;
+
         case "wordChoices":
-          console.log("wordchoices script.js", data);
-          const currentPainter = players.find((player) => player.painter);
-          if (currentPainter && currentPainter.id === myPlayerId) {
-            const wordSelectionDiv = document.createElement("div");
-            wordSelectionDiv.className = "word-selection";
-            wordSelectionDiv.innerHTML = `
-                                <div class="word-selection-container">
-                                    <h3>Choose a word to draw:</h3>
-                                    <div class="word-buttons">
-                                        ${data.words
-                                          .map(
-                                            (word) => `
-                                            <button class="word-choice">${word}</button>
-                                        `
-                                          )
-                                          .join("")}
-                                    </div>
-                                </div>
-                            `;
-
-            document.body.appendChild(wordSelectionDiv);
-
-            wordSelectionDiv.addEventListener("click", (e) => {
-              if (e.target.classList.contains("word-choice")) {
-                const selectedWord = e.target.textContent;
-                ws.send(
-                  JSON.stringify({
-                    type: "wordSelected",
-                    word: selectedWord,
-                  })
-                );
-                wordSelectionDiv.remove();
-              }
-            });
-          }
+          handleWordChoices(data);
           break;
 
         case "currentWord":
-          if (playerData.painter) {
-            // Create or update word display element
-            const wordDisplay = document.createElement("div");
-            wordDisplay.id = "current-word";
-            wordDisplay.className = "current-word";
-            wordDisplay.textContent = `Word to draw: ${data.word}`;
-            wordDisplay.style.cssText =
-              "position: fixed; top: 10px; left: 50%; transform: translateX(-50%); background: #fff; padding: 10px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);";
-
-            // Remove existing word display if any
-            const existingDisplay = document.getElementById("current-word");
-            if (existingDisplay) {
-              existingDisplay.remove();
-            }
-
-            document.body.appendChild(wordDisplay);
-          }
+          handleCurrentWord(data);
           break;
 
         case "wordReveal":
-          const wordReveal = document.createElement("div");
-          wordReveal.className = "word-reveal";
-          wordReveal.innerHTML = `<h3>The word was: ${data.word}</h3>`;
-          wordReveal.style.cssText =
-            "position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); z-index: 1000;";
-
-          document.body.appendChild(wordReveal);
-
-          // Remove the reveal after 3 seconds
-          setTimeout(() => {
-            wordReveal.remove();
-          }, 5000);
+          handleWordReveal(data);
           break;
+
         default:
           console.warn("Unknown message type received:", data.type);
       }
@@ -537,6 +416,61 @@ function stopDrawing() {
   isDrawing = false;
 }
 
+function handleUndo(data) {
+  strokeHistory = data.history;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  strokeHistory.forEach((stroke) => {
+    stroke.forEach((point) => {
+      drawLine(
+        point.x0,
+        point.y0,
+        point.x1,
+        point.y1,
+        point.color,
+        point.width
+      );
+    });
+  });
+}
+
+function handleUpdatePainter(data) {
+  // console.log("players", players);
+  const updatedPlayerId = data.playerId;
+  const isPainter = data.painter;
+
+  // Find the player and update their painter status
+  const playerIndex = players.findIndex(
+    (player) => player.id === updatedPlayerId
+  );
+  if (playerIndex !== -1) {
+    players[playerIndex].painter = isPainter; // Update status
+  }
+
+  // Check if this client is the painter
+  if (updatedPlayerId === myPlayerId) {
+    playerData.painter = isPainter;
+
+    if (!isPainter) {
+      const wordDisplay = document.getElementById("current-word");
+      if (wordDisplay) {
+        wordDisplay.remove();
+      }
+    }
+  }
+
+  console.log("Painter updated:", players);
+  console.log("Am I the painter?", playerData.painter);
+
+  updatePlayerList(players); // Refresh UI
+  // console.log("players again", players);
+}
+
+function handleTimerUpdate(data) {
+  console.log("Timer updated:", data.timeLeft); // Log the updated timer
+  // Update the DOM with the new time
+  document.querySelector("#timer").textContent = `${data.timeLeft}s`;
+}
+
 function updatePlayerList(players) {
   const playerList = document.querySelector("#players");
   console.log("Updating player list with:", players);
@@ -548,6 +482,94 @@ function updatePlayerList(players) {
         }>${player.name} ${player.painter ? "(Painter)" : ""}</li>`
     )
     .join("");
+}
+
+function handleUpdatePlayers(data) {
+  players = data.players;
+
+  // If myPlayerId is not set, find and set it
+  if (!myPlayerId) {
+    const me = players.find((player) => player.name === myName); // Match by name or another unique identifier
+    if (me) {
+      myPlayerId = me.id;
+      console.log("My Player ID set from players list:", myPlayerId);
+    }
+  }
+
+  updatePlayerList(players);
+}
+
+function handleWordChoices(data) {
+  console.log("wordchoices script.js", data);
+  const currentPainter = players.find((player) => player.painter);
+  if (currentPainter && currentPainter.id === myPlayerId) {
+    const wordSelectionDiv = document.createElement("div");
+    wordSelectionDiv.className = "word-selection";
+    wordSelectionDiv.innerHTML = `
+                                <div class="word-selection-container">
+                                    <h3>Choose a word to draw:</h3>
+                                    <div class="word-buttons">
+                                        ${data.words
+                                          .map(
+                                            (word) => `
+                                            <button class="word-choice">${word}</button>
+                                        `
+                                          )
+                                          .join("")}
+                                    </div>
+                                </div>
+                            `;
+
+    document.body.appendChild(wordSelectionDiv);
+
+    wordSelectionDiv.addEventListener("click", (e) => {
+      if (e.target.classList.contains("word-choice")) {
+        const selectedWord = e.target.textContent;
+        ws.send(
+          JSON.stringify({
+            type: "wordSelected",
+            word: selectedWord,
+          })
+        );
+        wordSelectionDiv.remove();
+      }
+    });
+  }
+}
+
+function handleCurrentWord(data) {
+  if (playerData.painter) {
+    // Create or update word display element
+    const wordDisplay = document.createElement("div");
+    wordDisplay.id = "current-word";
+    wordDisplay.className = "current-word";
+    wordDisplay.textContent = `Word to draw: ${data.word}`;
+    wordDisplay.style.cssText =
+      "position: fixed; top: 10px; left: 50%; transform: translateX(-50%); background: #fff; padding: 10px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);";
+
+    // Remove existing word display if any
+    const existingDisplay = document.getElementById("current-word");
+    if (existingDisplay) {
+      existingDisplay.remove();
+    }
+
+    document.body.appendChild(wordDisplay);
+  }
+}
+
+function handleWordReveal(data) {
+  const wordReveal = document.createElement("div");
+  wordReveal.className = "word-reveal";
+  wordReveal.innerHTML = `<h3>The word was: ${data.word}</h3>`;
+  wordReveal.style.cssText =
+    "position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); z-index: 1000;";
+
+  document.body.appendChild(wordReveal);
+
+  // Remove the reveal after 3 seconds
+  setTimeout(() => {
+    wordReveal.remove();
+  }, 5000);
 }
 
 function resizeCanvas() {
