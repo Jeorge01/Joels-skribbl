@@ -44,31 +44,11 @@ wss.on("connection", (ws) => {
       // console.log('Server received:', data);
 
       switch (data.type) {
+        
         case "join":
-          // Assuming each client sends a unique player ID
-          const playerId = data.id || `player-${Date.now()}`; // Generate unique ID if not provided
-          const playerName = data.name;
-
-          // Store the new client information
-          clients.set(ws, {
-            name: playerName,
-            id: playerId,
-            painter: false,
-          });
-
-          console.log(`${playerName} joined with ID: ${playerId}`);
-
-          // Respond back with a message containing the player's ID
-          ws.send(
-            JSON.stringify({
-              type: "join",
-              playerId: playerId,
-            })
-          );
-
-          // Broadcast the updated players list
-          broadcastPlayers();
+         handleJoin(ws, data);
           break;
+
         case "chat":
           broadcast(message.toString(), ws);
           console.log("Broadcasting chat message");
@@ -238,6 +218,34 @@ wss.on("connection", (ws) => {
     broadcastPlayers();
   });
 });
+
+function handleJoin(ws,data) {
+   // Assuming each client sends a unique player ID
+   const playerId = data.id || `player-${Date.now()}`; // Generate unique ID if not provided
+   const playerName = data.name;
+
+   // Store the new client information
+   clients.set(ws, {
+     name: playerName,
+     id: playerId,
+     painter: false,
+   });
+
+   console.log(`${playerName} joined with ID: ${playerId}`);
+
+   // Respond back with a message containing the player's ID
+   ws.send(
+     JSON.stringify({
+       type: "join",
+       playerId: playerId,
+     })
+   );
+
+   // Broadcast the updated players list
+   broadcastPlayers();
+}
+
+
 
 /******************************
  * LOAD WORDS FROM words.json *
