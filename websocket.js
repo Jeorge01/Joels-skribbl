@@ -185,6 +185,20 @@ wss.on("connection", (ws) => {
           break;
         case "wordSelected":
           console.log("Word selected, starting timer!");
+          //Store selected word
+          const currentWord = data.word;
+          // Send word only to the painter
+
+          wss.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+              client.send(
+                JSON.stringify({
+                  type: "currentWord",
+                  word: currentWord,
+                })
+              );
+            }
+          });
           startTimer();
           break;
         case "timerUpdate":
