@@ -44,158 +44,48 @@ wss.on("connection", (ws) => {
       // console.log('Server received:', data);
 
       switch (data.type) {
-        
         case "join":
-         handleJoin(ws, data);
+          handleJoin(ws, data);
           break;
 
         case "chat":
           broadcast(message.toString(), ws);
           console.log("Broadcasting chat message");
           break;
+
         case "draw":
-          drawingHistory.push(data);
-
-          wss.clients.forEach((client) => {
-            if (client.readyState === WebSocket.OPEN) {
-              const stringifiedData = JSON.stringify(data); // Convert to JSON string
-              client.send(stringifiedData);
-              // console.log("Sending draw data:", stringifiedData);
-            }
-          });
+          handleDraw(ws, data);
           break;
+
         case "clear":
-          drawingHistory = [];
-          wss.clients.forEach((client) => {
-            if (client !== ws && client.readyState === WebSocket.OPEN) {
-              client.send(JSON.stringify({ type: "clear" }));
-            }
-          });
+          handleClear(ws, data);
           break;
+
         case "undo":
-          wss.clients.forEach((client) => {
-            if (client !== ws && client.readyState === WebSocket.OPEN) {
-              client.send(
-                JSON.stringify({
-                  type: "undo",
-                  history: data.history,
-                })
-              );
-            }
-          });
+          handleUndo(ws, data);
           break;
+
         case "updatePainter":
-          const updatedPlayerId = data.playerId;
-          const isPainter = data.painter;
-
-          // Update the painter status in the clients Map
-          clients.forEach((clientData, clientWs) => {
-            if (clientData.id === updatedPlayerId) {
-              clientData.painter = isPainter;
-            }
-          });
-
-          // Rebuild the players array to keep it in sync with the clients Map
-          players = Array.from(clients.values());
-
-          // Broadcast the updated players list to all clients
-          broadcastPlayers();
-
-          console.log(
-            `Painter status updated: Player ${updatedPlayerId} is ${
-              isPainter ? "now the painter" : "no longer the painter"
-            }`
-          );
+          handleUpdatePainter(ws, data);
           break;
+
         case "startGame":
           console.log("Game started!");
           startGame(ws);
           break;
+
         case "wordChoices":
-          if (playerData.painter) {
-            const wordSelectionDiv = document.createElement("div");
-            wordSelectionDiv.className = "word-selection";
-            wordSelectionDiv.innerHTML = `
-                                <div class="word-selection-container">
-                                    <h3>Choose a word to draw:</h3>
-                                    <div class="word-buttons">
-                                        ${data.words
-                                          .map(
-                                            (word) => `
-                                            <button class="word-choice">${word}</button>
-                                        `
-                                          )
-                                          .join("")}
-                                    </div>
-                                </div>
-                            `;
-
-            document.body.appendChild(wordSelectionDiv);
-
-            wordSelectionDiv.addEventListener("click", (e) => {
-              if (e.target.classList.contains("word-choice")) {
-                const selectedWord = e.target.textContent;
-                ws.send(
-                  JSON.stringify({
-                    type: "wordSelected",
-                    word: selectedWord,
-                  })
-                );
-                wordSelectionDiv.remove();
-
-                // Start the timer after word selection
-                timeLeft = 60;
-                document.querySelector("#timer").textContent = `${timeLeft}s`;
-
-                const timerInterval = setInterval(() => {
-                  timeLeft--;
-                  ws.send(
-                    JSON.stringify({
-                      type: "timerUpdate",
-                      timeLeft: timeLeft,
-                    })
-                  );
-
-                  if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                  }
-                }, 1000);
-              }
-            });
-          }
+          handleWordchoices(ws, data);
           break;
+
         case "wordSelected":
-          console.log("Word selected, starting timer!");
-          //Store selected word
-          currentWord = data.word;
-          // Send word only to the painter
+          handleWordSelected(ws, data);
+          break;
 
-          wss.clients.forEach((client) => {
-            if (client.readyState === WebSocket.OPEN) {
-              client.send(
-                JSON.stringify({
-                  type: "currentWord",
-                  word: currentWord,
-                })
-              );
-            }
-          });
-          startTimer();
-          break;
         case "timerUpdate":
-          console.log("Timer updated:", data.timeLeft);
-          // No need for DOM updates here, just send the timer update to clients
-          wss.clients.forEach((client) => {
-            if (client.readyState === WebSocket.OPEN) {
-              client.send(
-                JSON.stringify({
-                  type: "timerUpdate",
-                  timeLeft: data.timeLeft,
-                })
-              );
-            }
-          });
+          handleTimerUpdate(ws, data);
           break;
+          
         case "rotateTurn":
           rotateTurn();
           break;
@@ -219,34 +109,201 @@ wss.on("connection", (ws) => {
   });
 });
 
-function handleJoin(ws,data) {
-   // Assuming each client sends a unique player ID
-   const playerId = data.id || `player-${Date.now()}`; // Generate unique ID if not provided
-   const playerName = data.name;
+/******************************
+ *       HANDLE JOIN          *
+ ******************************/
+function handleJoin(ws, data) {
+  // Assuming each client sends a unique player ID
+  const playerId = data.id || `player-${Date.now()}`; // Generate unique ID if not provided
+  const playerName = data.name;
 
-   // Store the new client information
-   clients.set(ws, {
-     name: playerName,
-     id: playerId,
-     painter: false,
-   });
+  // Store the new client information
+  clients.set(ws, {
+    name: playerName,
+    id: playerId,
+    painter: false,
+  });
 
-   console.log(`${playerName} joined with ID: ${playerId}`);
+  console.log(`${playerName} joined with ID: ${playerId}`);
 
-   // Respond back with a message containing the player's ID
-   ws.send(
-     JSON.stringify({
-       type: "join",
-       playerId: playerId,
-     })
-   );
+  // Respond back with a message containing the player's ID
+  ws.send(
+    JSON.stringify({
+      type: "join",
+      playerId: playerId,
+    })
+  );
 
-   // Broadcast the updated players list
-   broadcastPlayers();
+  // Broadcast the updated players list
+  broadcastPlayers();
 }
 
+/******************************
+ * HANDLE DRAW                *
+ ******************************/
+function handleDraw(ws, data) {
+  drawingHistory.push(data);
 
+  wss.clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      const stringifiedData = JSON.stringify(data); // Convert to JSON string
+      client.send(stringifiedData);
+      // console.log("Sending draw data:", stringifiedData);
+    }
+  });
+}
 
+/******************************
+ * HANDLE CLEAR              *
+ ******************************/
+function handleClear(ws, data) {
+  drawingHistory = [];
+  wss.clients.forEach((client) => {
+    if (client !== ws && client.readyState === WebSocket.OPEN) {
+      client.send(JSON.stringify({ type: "clear" }));
+    }
+  });
+}
+
+/******************************
+ * HANDLE UNDO               *
+ ******************************/
+function handleUndo(ws, data) {
+  wss.clients.forEach((client) => {
+    if (client !== ws && client.readyState === WebSocket.OPEN) {
+      client.send(
+        JSON.stringify({
+          type: "undo",
+          history: data.history,
+        })
+      );
+    }
+  });
+}
+
+/******************************
+ * HANDLE UPDATE PAINTER    *
+ ******************************/
+function handleUpdatePainter(ws, data) {
+  const updatedPlayerId = data.playerId;
+  const isPainter = data.painter;
+
+  // Update the painter status in the clients Map
+  clients.forEach((clientData, clientWs) => {
+    if (clientData.id === updatedPlayerId) {
+      clientData.painter = isPainter;
+    }
+  });
+
+  // Rebuild the players array to keep it in sync with the clients Map
+  players = Array.from(clients.values());
+
+  // Broadcast the updated players list to all clients
+  broadcastPlayers();
+
+  console.log(
+    `Painter status updated: Player ${updatedPlayerId} is ${
+      isPainter ? "now the painter" : "no longer the painter"
+    }`
+  );
+}
+
+/******************************
+ * HANDLE WORD CHOICES      *
+ ******************************/
+function handleWordchoices(ws, data) {
+  if (playerData.painter) {
+    const wordSelectionDiv = document.createElement("div");
+    wordSelectionDiv.className = "word-selection";
+    wordSelectionDiv.innerHTML = `
+                        <div class="word-selection-container">
+                            <h3>Choose a word to draw:</h3>
+                            <div class="word-buttons">
+                                ${data.words
+                                  .map(
+                                    (word) => `
+                                    <button class="word-choice">${word}</button>
+                                `
+                                  )
+                                  .join("")}
+                            </div>
+                        </div>
+                    `;
+
+    document.body.appendChild(wordSelectionDiv);
+
+    wordSelectionDiv.addEventListener("click", (e) => {
+      if (e.target.classList.contains("word-choice")) {
+        const selectedWord = e.target.textContent;
+        ws.send(
+          JSON.stringify({
+            type: "wordSelected",
+            word: selectedWord,
+          })
+        );
+        wordSelectionDiv.remove();
+
+        // Start the timer after word selection
+        timeLeft = 60;
+        document.querySelector("#timer").textContent = `${timeLeft}s`;
+
+        const timerInterval = setInterval(() => {
+          timeLeft--;
+          ws.send(
+            JSON.stringify({
+              type: "timerUpdate",
+              timeLeft: timeLeft,
+            })
+          );
+
+          if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+          }
+        }, 1000);
+      }
+    });
+  }
+}
+
+/******************************
+ * HANDLE WORD SELECTED    *
+ ******************************/
+function handleWordSelected(ws, data) {
+  console.log("Word selected, starting timer!");
+  //Store selected word
+  currentWord = data.word;
+  // Send word only to the painter
+
+  wss.clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(
+        JSON.stringify({
+          type: "currentWord",
+          word: currentWord,
+        })
+      );
+    }
+  });
+  startTimer();
+}
+
+/******************************
+ * HANDLE TIMER UPDATE      * 
+ ******************************/
+function handleTimerUpdate(ws, data) {
+  console.log("Timer updated:", data.timeLeft);
+  // No need for DOM updates here, just send the timer update to clients
+  wss.clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(
+        JSON.stringify({
+          type: "timerUpdate",
+          timeLeft: data.timeLeft,
+        })
+      );
+    }
+  });
+}
 /******************************
  * LOAD WORDS FROM words.json *
  ******************************/
