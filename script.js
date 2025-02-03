@@ -21,6 +21,7 @@ let currentTurnIndex = 0;
 let myPlayerId = null;
 let words = [];
 // let wordSelectionDiv = document.querySelector(".word-selection");
+let isGameInProgress = false;
 
 document.addEventListener("DOMContentLoaded", () => {
   const joinForm = document.querySelector("#join-form");
@@ -192,6 +193,9 @@ function joinGame() {
           startGameTurns(); // Start the game turns on receiving the game start signal
           break;
 
+        case "gameInProgress":
+          isGameInProgress = true;
+
         case "timerUpdate":
           handleTimerUpdate(data);
           break;
@@ -211,6 +215,10 @@ function joinGame() {
         case "wordReveal":
           handleWordReveal(data);
           break;
+
+          case "gameError":
+            alert(data.message);
+            break;
 
         default:
           console.warn("Unknown message type received:", data.type);
@@ -674,6 +682,7 @@ function chooseWords() {
 
 async function startGameTurns() {
   console.log(players);
+  if (isGameInProgress) return;
 
   // Wait for word choices from server
   // Timer will only start after word is selected

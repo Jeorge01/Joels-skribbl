@@ -16,6 +16,7 @@ let currentTurnIndex = 0; // To track the current player
 let gameInterval; // Interval for game rounds
 let timerInterval; // Interval for timer updates
 let currentWord = ""; // To store the current word
+let isGameInProgress = false; // To track if a game is in progress
 
 let words = [];
 
@@ -345,12 +346,28 @@ function chooseWords() {
  * START GAME *
  ****************/
 function startGame(ws) {
+  if (isGameInProgress) {
+    ws.send(
+      JSON.stringify({
+        type: "gameError",
+        message: "A game is already in progress",
+      })
+    );
+    return;
+  }
+
   players = Array.from(clients.values());
   if (players.length === 0) {
     console.warn("Cannot start game: no players connected.");
     return;
   }
-
+  isGameInProgress = true;
+  ws.send(
+    JSON.stringify({
+      type: "gameInProgress",
+      message: "gameInProgress",
+    })
+  );
   console.log("Game has started!");
 
   // Set the first player as the painter
