@@ -5,6 +5,7 @@
 - Customize rules, like max players and round lentgh
 - Fix the displaying of connected and disconnected players
 - sometimes when joining game, the cnavas is 0x0 size
+- Hides gueeses from other guessers when it's value is correct
 
 ## Game settings
 
