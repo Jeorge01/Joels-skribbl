@@ -4,6 +4,7 @@
 - kick people
 - Customize rules, like max players and round lentgh
 - Fix the displaying of connected and disconnected players
+- sometimes when joining game, the cnavas is 0x0 size
 
 ## Game settings
 
