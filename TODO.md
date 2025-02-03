@@ -11,7 +11,7 @@
 
 - [x] Build turn system so everyone is painter
 - [x] Only painter can paint and stop non paninters from painting
-- Cant start game when one is already ongoing
+- [x]Cant start game when one is already ongoing
 
 - Build guessing system so when the right word is guessed, that user gets points
 - Also visual feedback when you are close to the word
