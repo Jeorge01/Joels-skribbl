@@ -122,6 +122,7 @@ function handleJoin(ws, data) {
     name: playerName,
     id: playerId,
     painter: false,
+    points: 0,
   });
 
   console.log(`${playerName} joined with ID: ${playerId}`);
