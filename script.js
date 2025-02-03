@@ -120,6 +120,10 @@ function joinGame() {
         document.querySelector(".login-screen").style.display = "none";
         document.querySelector(".game-container").style.display = "flex";
         document.querySelector("#chatInput").focus();
+        
+        setTimeout(() => {
+          resizeCanvas();
+        }, 100);
 
         const sendBtn = document.querySelector("#sendBtn");
         sendBtn.addEventListener("click", sendMessage);
@@ -322,6 +326,7 @@ function setupCanvas() {
   canvas.addEventListener("mousemove", draw);
   canvas.addEventListener("mouseup", stopDrawing);
   canvas.addEventListener("mouseout", stopDrawing);
+  resizeCanvas();
 }
 
 function sendMessage(e) {

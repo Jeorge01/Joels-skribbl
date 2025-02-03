@@ -9,3 +9,8 @@ li.disconnection-message span {
 li.connection-message span {
     color: green;
 }
+
+canvas#gameCanvas {
+    width: 1280px;
+    height: 720px;
+}
