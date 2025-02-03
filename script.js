@@ -65,11 +65,6 @@ document.querySelector("#undoBtn").addEventListener("click", () => {
 document.querySelector("#startGameBtn").addEventListener("click", () => {
   startGameTurns();
   console.log("Starting game turns");
-  ws.send(
-    JSON.stringify({
-      type: "startGame",
-    })
-  );
 });
 
 canvas.addEventListener("touchstart", (e) => {
@@ -120,7 +115,7 @@ function joinGame() {
         document.querySelector(".login-screen").style.display = "none";
         document.querySelector(".game-container").style.display = "flex";
         document.querySelector("#chatInput").focus();
-        
+
         setTimeout(() => {
           resizeCanvas();
         }, 100);

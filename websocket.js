@@ -70,7 +70,6 @@ wss.on("connection", (ws) => {
           break;
 
         case "startGame":
-          console.log("Game started!");
           startGame(ws);
           break;
 
@@ -85,7 +84,7 @@ wss.on("connection", (ws) => {
         case "timerUpdate":
           handleTimerUpdate(ws, data);
           break;
-          
+
         case "rotateTurn":
           rotateTurn();
           break;
@@ -288,7 +287,7 @@ function handleWordSelected(ws, data) {
 }
 
 /******************************
- * HANDLE TIMER UPDATE      * 
+ * HANDLE TIMER UPDATE      *
  ******************************/
 function handleTimerUpdate(ws, data) {
   console.log("Timer updated:", data.timeLeft);
@@ -357,6 +356,7 @@ function startGame(ws) {
   // Set the first player as the painter
   const firstPlayer = players[0];
   firstPlayer.painter = true;
+  handleUpdatePainter(null, { playerId: firstPlayer.id, painter: true });
 
   // Choose words and send to the first painter
   const wordChoices = chooseWords();
