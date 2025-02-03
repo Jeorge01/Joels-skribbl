@@ -6,6 +6,7 @@
 - Fix the displaying of connected and disconnected players
 - sometimes when joining game, the cnavas is 0x0 size
 - Hides gueeses from other guessers when it's value is correct
+- When all guessers have guessed right, the round stops whithout having to wait for the timer to end
 
 ## Game settings
 
