@@ -16,6 +16,13 @@
 
 - [x] Add a timer
 - Build a point system
+- detect when someone is guessing the word and give indication when they guess right
+
+- Max points = 1200 per found
+- decreeses with 20 points per second
+- painter get's guessers points * 0.5
+- first painter to get 8000 points wins (subject to change)
+- Podium when someone wins
 
 - [x] Word reveal after round
 
