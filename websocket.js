@@ -139,6 +139,31 @@ function handleJoin(ws, data) {
 }
 
 /******************************
+ * HANDLE GAME IN PROGRESS                *
+ ******************************/
+function isGameInProgressCheck(ws, data) {
+  console.log("isGameInProgress", isGameInProgress);
+  console.log("Checking if game is in progress...");
+  if (isGameInProgress) {
+    wss.clients.forEach((client) => {
+      client.send(JSON.stringify({
+        type: "gameProgress",
+        isGameInProgress: true
+      }));
+    });
+    return true;
+  }
+  
+  wss.clients.forEach((client) => {
+    client.send(JSON.stringify({
+      type: "gameProgress",
+      isGameInProgress: false
+    }));
+  });
+  return false;
+}
+
+/******************************
  * HANDLE DRAW                *
  ******************************/
 function handleDraw(ws, data) {
@@ -361,13 +386,11 @@ function startGame(ws) {
     console.warn("Cannot start game: no players connected.");
     return;
   }
+
   isGameInProgress = true;
-  ws.send(
-    JSON.stringify({
-      type: "gameInProgress",
-      message: "gameInProgress",
-    })
-  );
+
+  isGameInProgressCheck();
+
   console.log("Game has started!");
 
   // Set the first player as the painter

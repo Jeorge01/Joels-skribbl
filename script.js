@@ -193,8 +193,8 @@ function joinGame() {
           startGameTurns(); // Start the game turns on receiving the game start signal
           break;
 
-        case "gameInProgress":
-          isGameInProgress = true;
+        case "gameProgress":
+          handleGameProgress(data);
 
         case "timerUpdate":
           handleTimerUpdate(data);
@@ -597,6 +597,16 @@ function clearCanvas() {
         type: "clear",
       })
     );
+  }
+}
+
+function handleGameProgress(data) {
+  const startGameBtn = document.querySelector("#startGameBtn");
+  console.log("isGameInProgress", data.isGameInProgress);
+  if (data.isGameInProgress) {
+    startGameBtn.style.display = "none";
+  } else {
+    startGameBtn.style.display = "block";
   }
 }
 
