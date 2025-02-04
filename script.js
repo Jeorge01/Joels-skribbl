@@ -319,7 +319,7 @@ function sendMessage(e) {
 
     if (!message) return;
 
-    if (playerData.painter && message===currentWord){
+    if (playerData.painter){
         chatInput.value = "";
         return;
     }
