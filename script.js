@@ -319,11 +319,6 @@ function sendMessage(e) {
 
     if (!message) return;
 
-    if (playerData.painter){
-        chatInput.value = "";
-        return;
-    }
-
     const chatBox = document.querySelector(".chat-box");
     const timeOptions = { hour: "2-digit", minute: "2-digit" };
     

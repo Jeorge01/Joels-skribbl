@@ -119,6 +119,7 @@ function handleJoin(ws, data) {
         id: playerId,
         painter: false,
         points: 0,
+        knowsWord: false 
     });
 
     console.log(`${playerName} joined with ID: ${playerId}`);
@@ -218,6 +219,7 @@ function handleUpdatePainter(ws, data) {
     clients.forEach((clientData, clientWs) => {
         if (clientData.id === updatedPlayerId) {
             clientData.painter = isPainter;
+            clientData.knowsWord = isPainter;
         }
     });
 
@@ -475,6 +477,11 @@ function rotateTurn() {
         }
     });
 
+    // Reset knowsWord for all players
+    clients.forEach((clientData) => {
+        clientData.knowsWord = false;
+    });
+
     // First update the painter status
     const previousPlayer = players[currentTurnIndex];
     broadcastPainterUpdate(previousPlayer.id, false); // Remove painter status from current player
@@ -482,7 +489,16 @@ function rotateTurn() {
     // Rotate to next player
     currentTurnIndex = (currentTurnIndex + 1) % players.length;
     const currentPlayer = players[currentTurnIndex];
+
+    // Set new painter's knowsWord to true
+    clients.forEach((clientData) => {
+        if (clientData.id === currentPlayer.id) {
+            clientData.knowsWord = true;
+        }
+    });
+
     broadcastPainterUpdate(currentPlayer.id, true); // Set new player as painter
+    broadcastPlayers();
 
     // Then send word choices to new painter
     const wordChoices = chooseWords();
@@ -549,21 +565,44 @@ function broadcastWordChoicesToPainter(painter, words) {
  *********************************/
 function broadcast(message, sender) {
     const parsedMessage = JSON.parse(message);
-    console.log("object with message", message);
+    const senderData = clients.get(sender);
 
+    console.log("Message attempt:", {
+        senderName: senderData.name,
+        isPainter: senderData.painter,
+        knowsWord: senderData.knowsWord,
+        messageType: parsedMessage.type,
+        message: parsedMessage.message
+    });
+    
     if (parsedMessage.type === "chat" && parsedMessage.message === currentWord) {
-        console.log("Correct word guessed!");
-
-        
-        parsedMessage.message = "Correct word guessed!";
+        clients.forEach((clientData, ws) => {
+            if (ws === sender) {
+                clientData.knowsWord = true;
+            }
+        });
+        parsedMessage.isCorrectGuess = true;
         message = JSON.stringify(parsedMessage);
-        console.log("object right", message);
     }
 
-    const messageToSend = typeof message === "string" ? message : JSON.stringify(message);
     wss.clients.forEach((client) => {
-        if (client !== sender && client.readyState === WebSocket.OPEN) {
-            client.send(messageToSend);
+        const receiverData = clients.get(client);
+        console.log("Receiver check:", {
+            receiverKnowsWord: receiverData.knowsWord,
+            senderKnowsWord: senderData.knowsWord,
+            wouldSend: !senderData.knowsWord || receiverData.knowsWord
+        });
+        
+        // Skip sending to the original sender since script.js handles their message locally
+        if (client === sender) {
+            return;
+        }
+
+        // Message visibility logic for other clients
+        if (!senderData.knowsWord || receiverData.knowsWord) {
+            if (client.readyState === WebSocket.OPEN) {
+                client.send(message);
+            }
         }
     });
 }
@@ -576,7 +615,23 @@ function broadcastPlayers() {
         id: client.id,
         name: client.name,
         painter: client.painter || false,
+        points: client.points,
+        knowsWord: client.knowsWord,
     }));
+
+    console.log("Full Player Details:");
+    playersList.forEach(player => {
+        console.log(`
+            Player: ${player.name}
+            ID: ${player.id}
+            Points: ${player.points}
+            Knows Word: ${player.knowsWord}
+            Is Painter: ${player.painter}
+            -------------------
+        `);
+    });
+
+    // console.log("playersList", playersList);
 
     wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
