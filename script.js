@@ -20,6 +20,7 @@ let players = [];
 let currentTurnIndex = 0;
 let myPlayerId = null;
 let words = [];
+let currentWord = null;
 // let wordSelectionDiv = document.querySelector(".word-selection");
 let isGameInProgress = false;
 
@@ -216,9 +217,9 @@ function joinGame() {
           handleWordReveal(data);
           break;
 
-          case "gameError":
-            alert(data.message);
-            break;
+        case "gameError":
+          alert(data.message);
+          break;
 
         default:
           console.warn("Unknown message type received:", data.type);
@@ -546,6 +547,8 @@ function handleWordChoices(data) {
 }
 
 function handleCurrentWord(data) {
+  currentWord = data.word;
+  console.log("Current word:", currentWord);
   if (playerData.painter) {
     // Create or update word display element
     const wordDisplay = document.createElement("div");
