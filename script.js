@@ -319,13 +319,23 @@ function sendMessage(e) {
 
     if (!message) return;
 
+    if (playerData.painter && message===currentWord){
+        chatInput.value = "";
+        return;
+    }
+
     const chatBox = document.querySelector(".chat-box");
     const timeOptions = { hour: "2-digit", minute: "2-digit" };
-    chatBox.innerHTML += `<li><span>${playerName}${" "}</span><span>${new Date().toLocaleTimeString(
-        [],
-        timeOptions
-    )}${" "}</span><span>${message}${" "}</span></li>`;
-    console.log("Sending chat message:", message);
+    
+    // Add correct guess indicator if message matches currentWord
+    const correctGuessIndicator = message === currentWord ? 
+    ' <span style="color: #2ecc71; font-weight: bold;">✓ Correct!</span>' : '';
+
+    chatBox.innerHTML += `<li>
+        <span>${playerName}${" "}</span>
+        <span>${new Date().toLocaleTimeString([], timeOptions)}${" "}</span>
+        <span>${message}${correctGuessIndicator}</span>
+    </li>`;
 
     ws.send(
         JSON.stringify({
@@ -338,7 +348,6 @@ function sendMessage(e) {
 
     chatInput.value = "";
 }
-
 function startDrawing(event) {
     if (!playerData.painter) return;
     isDrawing = true;
