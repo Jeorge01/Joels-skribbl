@@ -7,6 +7,8 @@
 - sometimes when joining game, the cnavas is 0x0 size
 - Hides gueeses from other guessers when it's value is correct
 - When all guessers have guessed right, the round stops whithout having to wait for the timer to end
+- painters messages can only be seen by people who already guessed correctly
+- When someone have guessed right, that players messages can't be seen by players that have not guessed correctly yet (or messages by the painter)
 
 ## Game settings
 
