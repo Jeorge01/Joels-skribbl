@@ -1,0 +1,40 @@
+// -----------------------------------------------------------------------------
+// This file contains all styles related to the button component.
+// -----------------------------------------------------------------------------
+@import "../abstracts/variables";
+
+input[type=button], input[type=submit], button {
+    border-radius: 8px;
+    border: none;
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+input#clearBtn {
+    background-color: #e74c3c;
+    color: white;
+}
+
+input#undoBtn {
+    background-color: #e7b43c;
+    color: white;
+}
+
+input#sendBtn {
+    background-color: rgb(33, 140, 255);
+    color: white;
+}
+
+input#joinBtn {
+    background-color: rgb(33, 140, 255);
+    color: white;
+}
+
+
+button#startGameBtn {
+    background-color: rgb(19, 203, 83);
+    color: white;
+}

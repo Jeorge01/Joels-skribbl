@@ -1,0 +1,9 @@
+// -----------------------------------------------------------------------------
+// This file contains all styles related to the canvas component.
+// -----------------------------------------------------------------------------
+@import "../abstracts/variables";
+
+canvas#gameCanvas {
+    width: 600px;
+    height: 400px;
+}

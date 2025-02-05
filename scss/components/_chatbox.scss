@@ -1,0 +1,17 @@
+// -----------------------------------------------------------------------------
+// This file contains all styles related to the chatbox component.
+// -----------------------------------------------------------------------------
+@import "../abstracts/variables";
+
+li.disconnection-message span {
+    color: red;
+}
+
+li.connection-message span {
+    color: green;
+}
+
+.correct {
+    color: #2ecc71;
+    font-weight: bold;
+}

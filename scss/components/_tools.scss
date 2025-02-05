@@ -1,0 +1,21 @@
+// -----------------------------------------------------------------------------
+// This file contains all styles related to the button component.
+// -----------------------------------------------------------------------------
+@import "../abstracts/variables";
+
+div.tools {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    div#colorPalette {
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
+    }
+
+    div {
+        display: flex;
+        gap: 10px;
+    }
+}

@@ -31,6 +31,10 @@
         </div>
 
         <div class="game-container" style="display: none">
+            <div class="player-list">
+                <h3>players</h3>
+                <ul id="players"></ul>
+            </div>
             <div class="drawing-area">
                 <canvas id="gameCanvas" width="800" height="600"></canvas>
                 <div class="tools">
@@ -48,14 +52,12 @@
                         <button class="color-btn" data-color="#A52A2A"></button>
                         <button class="color-btn" data-color="#808080"></button>
                     </div>
-                    <input type="range" name="brushSize" id="brushSize" min="1" max="20" value="5" />
-                    <input type="button" value="clear" id="clearBtn" />
-                    <input type="button" value="undo" id="undoBtn" />
+                    <div>
+                        <input type="range" name="brushSize" id="brushSize" min="1" max="20" value="5" />
+                        <input type="button" value="clear" id="clearBtn" />
+                        <input type="button" value="undo" id="undoBtn" />
+                    </div>
                 </div>
-            </div>
-            <div class="player-list">
-                <h3>players</h3>
-                <ul id="players"></ul>
             </div>
             <div class="chat-container">
                 <ul class="chat-box"></ul>
@@ -71,7 +73,7 @@
 
         <script>
             window.CONFIG = {
-                PORT: "<%= process.env.PORT %>"
+                PORT: "<%= process.env.PORT %>",
             };
         </script>
         <script src="script.js"></script>

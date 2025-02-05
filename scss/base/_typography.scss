@@ -1,0 +1,11 @@
+/**
+ * Basic typography style for copy text
+ */
+
+@import "../abstracts/variables";
+@import "../abstracts/mixins";
+
+body {
+  font: normal 125% / 1.4 $text-font-stack;
+}
+
