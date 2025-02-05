@@ -102,6 +102,20 @@ wss.on("connection", (ws) => {
         console.log("Client disconnected");
         clients.delete(ws);
         players = Array.from(clients.values()); // Sync players array with clients Map
+
+        if (isGameInProgress && players.length < 2) {
+            isGameInProgress = false;
+            // Notify remaining clients to cancel word selection
+            wss.clients.forEach((client) => {
+                if (client.readyState === WebSocket.OPEN) {
+                    client.send(JSON.stringify({
+                        type: "cancelWordSelection"
+                    }));
+                }
+            });
+            rotateTurn();
+        }
+
         broadcastPlayers();
     });
 });
@@ -247,7 +261,7 @@ function calculatePoints(timeLeft) {
 }
 
 function checkWinCondition() {
-    const winner = Array.from(clients.values()).find((player) => player.points >= 2000);
+    const winner = Array.from(clients.values()).length < 2 || Array.from(clients.values()).find((player) => player.points >= 2000);
     if (winner) {
         // Sort players by points to get top 3
         const topPlayers = Array.from(clients.values())
@@ -424,8 +438,11 @@ function startGame(ws) {
     }
 
     players = Array.from(clients.values());
-    if (players.length === 0) {
-        console.warn("Cannot start game: no players connected.");
+    if (players.length < 2) {
+        ws.send(JSON.stringify({
+            type: "gameError",
+            message: "Need at least 2 players to start the game"
+        }));
         return;
     }
 
