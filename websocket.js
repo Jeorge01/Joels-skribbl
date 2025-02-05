@@ -566,12 +566,8 @@ function broadcastWordChoicesToPainter(painter, words) {
 function broadcast(message, sender) {
     const parsedMessage = JSON.parse(message);
     const senderData = clients.get(sender);
-
-    
-    
     
     if (parsedMessage.type === "chat" && parsedMessage.message === currentWord) {
-        
         const hiddenMessage = {
             ...parsedMessage,
             isCorrectGuess: true,
@@ -596,21 +592,45 @@ function broadcast(message, sender) {
             }
         });
 
-        // Then update knowsWord status
+        // Update knowsWord status
         clients.forEach((clientData, ws) => {
             if (ws === sender) {
                 clientData.knowsWord = true;
             }
         });
+
+        // Check if all players know the word
+        const allPlayersKnowWord = Array.from(clients.values()).every(player => 
+            player.knowsWord || player.painter
+        );
+
+        if (allPlayersKnowWord && timerInterval) {
+            clearInterval(timerInterval);
+            
+            wss.clients.forEach((client) => {
+                if (client.readyState === WebSocket.OPEN) {
+                    client.send(JSON.stringify({
+                        type: "timerUpdate",
+                        timeLeft: 0
+                    }));
+                    
+                    client.send(JSON.stringify({
+                        type: "wordReveal",
+                        word: currentWord
+                    }));
+                }
+            });
+            
+            setTimeout(rotateTurn, 3000);
+        }
         
-        // Broadcast updated player states
         broadcastPlayers();
         return;
     }
 
     // Handle regular messages
     wss.clients.forEach((client) => {
-        const receiverData = clients.get(client);
+        const receiverDaöta = clients.get(client);
         if (!senderData.knowsWord || receiverData.knowsWord) {
             if (client.readyState === WebSocket.OPEN && client !== sender) {
                 client.send(message);
@@ -618,7 +638,6 @@ function broadcast(message, sender) {
         }
     });
 }
-
 /*********************************
  * BROADCAST PLAYERS *
  *********************************/
