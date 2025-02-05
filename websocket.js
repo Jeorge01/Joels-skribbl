@@ -35,6 +35,7 @@ const clients = new Map();
 
 wss.on("connection", (ws) => {
     try {
+        handlePlayers(ws);
         console.log("New client connected");
 
         drawingHistory.forEach((drawData) => {
@@ -48,6 +49,7 @@ wss.on("connection", (ws) => {
             switch (data.type) {
                 case "join":
                     handleJoin(ws, data);
+                    handlePlayers(ws);
                     break;
 
                 case "chat":
@@ -105,6 +107,7 @@ wss.on("connection", (ws) => {
         const wasPainter = disconnectedPlayer && disconnectedPlayer.painter;
 
         clients.delete(ws);
+        handlePlayers(ws); 
         players = Array.from(clients.values()); // Sync players array with clients Map
 
         if (isGameInProgress && players.length < 2) {
@@ -172,6 +175,24 @@ function handleJoin(ws, data) {
 
     // Broadcast the updated players list
     broadcastPlayers();
+}
+
+/******************************
+ * HANDLE PLAYERS                *
+ ******************************/
+function handlePlayers(ws) {
+    const previousPlayersList = Array.from(clients.values());
+    const currentPlayersList = Array.from(clients.values());
+    
+    wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({
+                type: "players",
+                players: currentPlayersList,
+                previousPlayers: previousPlayersList
+            }));
+        }
+    });
 }
 
 /******************************

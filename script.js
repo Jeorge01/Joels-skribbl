@@ -23,6 +23,7 @@ let words = [];
 let currentWord = null;
 // let wordSelectionDiv = document.querySelector(".word-selection");
 let isGameInProgress = false;
+let previousPlayers = [];
 
 document.addEventListener("DOMContentLoaded", () => {
     const joinForm = document.querySelector("#join-form");
@@ -96,7 +97,6 @@ function joinGame() {
 
     playerName = document.querySelector("#playerName").value;
     if (!playerName) return;
-    let previousPlayers = [];
 
     const playerId = `${playerName}_${Date.now()}`;
 
@@ -482,7 +482,8 @@ function handleTimerUpdate(data) {
 function updatePlayerList(players) {
     const playerList = document.querySelector("#players");
     console.log("Updating player list with:", players);
-    playerList.innerHTML = players
+    
+    const generatedHTML = players
         .map(
             (player) =>
                 `<li data-player-id="${player.id}" ${player.painter ? 'class="painter"' : ""}>${player.name} ${
@@ -490,7 +491,11 @@ function updatePlayerList(players) {
                 } - Points: ${player.points}</li>`
         )
         .join("");
+    
+    console.log("Generated HTML:", generatedHTML);
+    playerList.innerHTML = generatedHTML;
 }
+
 
 function handleUpdatePlayers(data) {
     players = data.players;
