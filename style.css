@@ -14,3 +14,8 @@ canvas#gameCanvas {
     width: 600px;
     height: 400px;
 }
+
+.correct {
+    color: #2ecc71;
+    font-weight: bold;
+}

@@ -275,18 +275,27 @@ function joinGame() {
 
     // Helper function to handle "chat" messages
     function handleChat(data) {
+        console.log("Received chat message:", data);
+        
+        let correctOrNot = "";
+        if (data.isCorrectGuess === true) {
+            correctOrNot = "correct";
+        }
+    
         const chatBox = document.querySelector(".chat-box");
         const timeOptions = { hour: "2-digit", minute: "2-digit" };
-
+    
         if (!data.sender || !data.message || !data.timestamp) {
             console.warn("Invalid chat data:", data);
             return;
         }
-
+    
         const localTime = new Date(data.timestamp).toLocaleTimeString([], timeOptions);
-        chatBox.innerHTML += `<li><span>${data.sender}${" "}</span><span>${localTime}${" "}</span><span>${
-            data.message
-        }${" "}</span></li>`;
+        chatBox.innerHTML += `<li class="${correctOrNot}">
+            <span>${data.sender} </span>
+            <span>${localTime} </span>
+            <span>${data.message} </span>
+        </li>`;
     }
 
     window.addEventListener("beforeunload", () => {
@@ -321,15 +330,19 @@ function sendMessage(e) {
 
     const chatBox = document.querySelector(".chat-box");
     const timeOptions = { hour: "2-digit", minute: "2-digit" };
-    
-    // Add correct guess indicator if message matches currentWord
-    const correctGuessIndicator = message === currentWord ? 
-    ' <span style="color: #2ecc71; font-weight: bold;">✓ Correct!</span>' : '';
 
-    chatBox.innerHTML += `<li>
-        <span>${playerName}${" "}</span>
-        <span>${new Date().toLocaleTimeString([], timeOptions)}${" "}</span>
-        <span>${message}${correctGuessIndicator}</span>
+    let correctOrNot = "";
+    let displayMessage = message;
+
+    if (message === currentWord) {
+        correctOrNot = "correct";
+        displayMessage = `${currentWord} ✓ Correct!`;
+    }
+
+    chatBox.innerHTML += `<li class="${correctOrNot}">
+        <span>${playerName} </span>
+        <span>${new Date().toLocaleTimeString([], timeOptions)} </span>
+        <span>${displayMessage}</span>
     </li>`;
 
     ws.send(
@@ -343,6 +356,7 @@ function sendMessage(e) {
 
     chatInput.value = "";
 }
+
 function startDrawing(event) {
     if (!playerData.painter) return;
     isDrawing = true;
