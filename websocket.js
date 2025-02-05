@@ -164,6 +164,7 @@ function handleJoin(ws, data) {
         isGameInProgress: isGameInProgress
     }));
 
+    // gets the current word if player joined after the painter chose the word
     ws.send(JSON.stringify({
         type: "currentWord",
         word: currentWord
@@ -549,6 +550,22 @@ function startTimer() {
  * ROTATE TURN *
  *******************/
 function rotateTurn() {
+
+    // Clear any existing timer interval
+    if (timerInterval) {
+        clearInterval(timerInterval);
+    }
+    
+    // Reset timer display for all clients
+    wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({
+                type: "timerUpdate",
+                timeLeft: 60
+            }));
+        }
+    });
+
     // clear canvas
     wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
