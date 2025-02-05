@@ -158,6 +158,12 @@ function handleJoin(ws, data) {
         })
     );
 
+    // hides start game button if game is in progress
+    ws.send(JSON.stringify({
+        type: "gameProgress",
+        isGameInProgress: isGameInProgress
+    }));
+
     // Broadcast the updated players list
     broadcastPlayers();
 }
