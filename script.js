@@ -5,7 +5,7 @@ let ctx = canvas.getContext("2d");
 let lastX, lastY;
 let playerName;
 let currentColor = "#000000";
-const PORT = window.CONFIG.PORT || 3000;
+// const PORT = window.CONFIG.PORT || 3000;
 let strokeHistory = [];
 let currentStroke = [];
 let playerData = {
@@ -100,7 +100,7 @@ function joinGame() {
 
     const playerId = `${playerName}_${Date.now()}`;
 
-    const wsUrl = `ws://${window.location.hostname}:8888`;
+    const wsUrl = `ws://shark-app-4w9xh.ondigitalocean.app:8888`;
     console.log("Connecting to:", wsUrl);
 
     try {
