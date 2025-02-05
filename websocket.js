@@ -567,40 +567,52 @@ function broadcast(message, sender) {
     const parsedMessage = JSON.parse(message);
     const senderData = clients.get(sender);
 
-    console.log("Message attempt:", {
-        senderName: senderData.name,
-        isPainter: senderData.painter,
-        knowsWord: senderData.knowsWord,
-        messageType: parsedMessage.type,
-        message: parsedMessage.message
-    });
+    
+    
     
     if (parsedMessage.type === "chat" && parsedMessage.message === currentWord) {
+        
+        const hiddenMessage = {
+            ...parsedMessage,
+            isCorrectGuess: true,
+            message: "✓ guessed correct!"
+        }
+    
+        const revealedMessage = {
+            ...parsedMessage,
+            isCorrectGuess: true,
+            message: `${currentWord} ✓ Correct!` 
+        }
+
+        // Send appropriate message version to each client
+        wss.clients.forEach((client) => {
+            const receiverData = clients.get(client);
+            if (client.readyState === WebSocket.OPEN && client !== sender) {
+                if (receiverData.knowsWord) {
+                    client.send(JSON.stringify(revealedMessage));
+                } else {
+                    client.send(JSON.stringify(hiddenMessage));
+                }
+            }
+        });
+
+        // Then update knowsWord status
         clients.forEach((clientData, ws) => {
             if (ws === sender) {
                 clientData.knowsWord = true;
             }
         });
-        parsedMessage.isCorrectGuess = true;
-        message = JSON.stringify(parsedMessage);
+        
+        // Broadcast updated player states
+        broadcastPlayers();
+        return;
     }
 
+    // Handle regular messages
     wss.clients.forEach((client) => {
         const receiverData = clients.get(client);
-        console.log("Receiver check:", {
-            receiverKnowsWord: receiverData.knowsWord,
-            senderKnowsWord: senderData.knowsWord,
-            wouldSend: !senderData.knowsWord || receiverData.knowsWord
-        });
-        
-        // Skip sending to the original sender since script.js handles their message locally
-        if (client === sender) {
-            return;
-        }
-
-        // Message visibility logic for other clients
         if (!senderData.knowsWord || receiverData.knowsWord) {
-            if (client.readyState === WebSocket.OPEN) {
+            if (client.readyState === WebSocket.OPEN && client !== sender) {
                 client.send(message);
             }
         }
