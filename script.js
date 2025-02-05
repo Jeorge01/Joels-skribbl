@@ -196,6 +196,11 @@ function joinGame() {
 
         case "gameProgress":
           handleGameProgress(data);
+          break;
+
+        case "gameWon":
+          handleGameWon(data);
+          break;
 
         case "timerUpdate":
           handleTimerUpdate(data);
@@ -509,7 +514,9 @@ function updatePlayerList(players) {
       (player) =>
         `<li data-player-id="${player.id}" ${
           player.painter ? 'class="painter"' : ""
-        }>${player.name} ${player.painter ? "(Painter)" : ""}</li>`
+        }>${player.name} ${player.painter ? "(Painter)" : ""} - Points: ${
+          player.points
+        }</li>`
     )
     .join("");
 }
@@ -632,6 +639,51 @@ function handleGameProgress(data) {
   } else {
     startGameBtn.style.display = "block";
   }
+}
+
+function handleGameWon(data) {
+  const winnerDisplay = createWinnerElement(data);
+  document.body.appendChild(winnerDisplay);
+  resetGameState();
+  scheduleWinnerDisplayRemoval(winnerDisplay);
+}
+
+function createWinnerElement(data) {
+  const winnerDisplay = document.createElement("div");
+  winnerDisplay.className = "winner-display";
+  
+  const podiumHTML = data.podium.map(player => `
+    <div class="podium-position">
+      ${player.position === 1 ? '🥇' : player.position === 2 ? '🥈' : '🥉'}
+      <p>${player.name}</p>
+      <p>${player.points} points</p>
+    </div>
+  `).join('');
+
+  winnerDisplay.innerHTML = `
+    <div class="winner-container">
+      <h2>🏆 Game Over! 🏆</h2>
+      <h3>${data.winner} wins!</h3>
+      <div class="podium">
+        ${podiumHTML}
+      </div>
+    </div>
+  `;
+  
+  winnerDisplay.style.cssText = "position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); z-index: 1000; text-align: center;";
+  return winnerDisplay;
+}
+
+
+function resetGameState() {
+  isGameInProgress = false;
+  document.querySelector("#startGameBtn").style.display = "block";
+}
+
+function scheduleWinnerDisplayRemoval(element) {
+  setTimeout(() => {
+    element.remove();
+  }, 5000);
 }
 
 function undo() {

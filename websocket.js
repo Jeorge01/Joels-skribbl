@@ -17,6 +17,7 @@ let gameInterval; // Interval for game rounds
 let timerInterval; // Interval for timer updates
 let currentWord = ""; // To store the current word
 let isGameInProgress = false; // To track if a game is in progress
+let timeLeft = 0; // To store the remaining time
 
 let words = [];
 
@@ -241,6 +242,48 @@ function handleUpdatePainter(ws, data) {
 }
 
 /******************************
+ * CALCULATE POINTS         *
+ *  ******************************/
+
+function calculatePoints(timeLeft) {
+
+const points = Math.max(0,1200 -((60 - timeLeft) * 20));
+return points;
+
+}
+
+function checkWinCondition() {
+  const winner = Array.from(clients.values()).find(player => player.points >= 2000);
+  if (winner) {
+    // Sort players by points to get top 3
+    const topPlayers = Array.from(clients.values())
+      .sort((a, b) => b.points - a.points)
+      .slice(0, 3)
+      .map((player, index) => ({
+        name: player.name,
+        points: player.points,
+        position: index + 1
+      }));
+
+    wss.clients.forEach(client => {
+      client.send(JSON.stringify({
+        type: "gameWon",
+        podium: topPlayers,
+        winner: winner.name,
+        points: winner.points
+      }));
+    });
+
+    // Reset game state
+    isGameInProgress = false;
+    // Reset points
+    clients.forEach(client => client.points = 0);
+  }
+}
+
+
+
+/******************************
  * HANDLE WORD CHOICES      *
  ******************************/
 function handleWordchoices(ws, data) {
@@ -438,7 +481,7 @@ function startGame(ws) {
  * STARTRT TIMER *
  *******************/
 function startTimer() {
-  let timeLeft = 60;
+   timeLeft = 60;
   timerInterval = setInterval(() => {
     timeLeft--;
     wss.clients.forEach((client) => {
@@ -474,6 +517,7 @@ function startTimer() {
  * ROTATE TURN *
  *******************/
 function rotateTurn() {
+
   // clear canvas
   wss.clients.forEach((client) => {
     if (client.readyState === WebSocket.OPEN) {
@@ -497,6 +541,8 @@ function rotateTurn() {
   // Rotate to next player
   currentTurnIndex = (currentTurnIndex + 1) % players.length;
   const currentPlayer = players[currentTurnIndex];
+
+  checkWinCondition();
 
   // Set new painter's knowsWord to true
   clients.forEach((clientData) => {
@@ -587,6 +633,16 @@ function broadcast(message, sender) {
   }
 
   if (parsedMessage.type === "chat" && parsedMessage.message === currentWord) {
+
+    const guesserPoints = calculatePoints(timeLeft);
+
+    clients.get(sender).points += guesserPoints;
+
+    const painter = Array.from(clients.values()).find(player=> player.painter);
+    if (painter) {
+      painter.points +=Math.floor( guesserPoints * 0.5);
+    }
+
     const hiddenMessage = {
       ...parsedMessage,
       isCorrectGuess: true,
