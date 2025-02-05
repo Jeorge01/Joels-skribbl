@@ -164,6 +164,11 @@ function handleJoin(ws, data) {
         isGameInProgress: isGameInProgress
     }));
 
+    ws.send(JSON.stringify({
+        type: "currentWord",
+        word: currentWord
+    }));
+
     // Broadcast the updated players list
     broadcastPlayers();
 }
