@@ -23,6 +23,11 @@ let words = [];
 
 app.use(express.static(__dirname));
 
+// Add a basic route for the root path
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/index.html');
+});
+
 app.use((req, res, next) => {
     res.setHeader(
         "Content-Security-Policy",
