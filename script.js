@@ -24,6 +24,7 @@ let currentWord = null;
 // let wordSelectionDiv = document.querySelector(".word-selection");
 let isGameInProgress = false;
 let previousPlayers = [];
+const chatBox = document.querySelector(".chat-box");
 
 document.addEventListener("DOMContentLoaded", () => {
     const joinForm = document.querySelector("#join-form");
@@ -100,7 +101,7 @@ function joinGame() {
 
     const playerId = `${playerName}_${Date.now()}`;
 
-    const wsUrl = `ws://localhost:8888`;   
+    const wsUrl = `ws://localhost:8888`;
     // const wsUrl = `wss://shark-app-4w9xh.ondigitalocean.app`;
     console.log("Connecting to:", wsUrl);
 
@@ -306,6 +307,7 @@ function joinGame() {
             </span>
             <span class="player-message">${data.message} </span>
         </li>`;
+        scrollToBottom();
     }
 
     window.addEventListener("beforeunload", () => {
@@ -361,6 +363,7 @@ function sendMessage(e) {
         </span>
         <span class="player-message">${displayMessage}</span>
     </li>`;
+    scrollToBottom();
 
     ws.send(
         JSON.stringify({
@@ -372,6 +375,8 @@ function sendMessage(e) {
     );
 
     chatInput.value = "";
+    scrollToBottom();
+    console.log("scrollToBottom");
 }
 
 function startDrawing(event) {
@@ -448,6 +453,16 @@ function handleUndo(data) {
     });
 }
 
+function scrollToBottom(force = false) {
+    // Check if user is at the bottom before adding new messages
+    const atBottom = chatBox.scrollHeight - chatBox.scrollTop === chatBox.clientHeight;
+
+    // Only scroll if the user was already at the bottom
+    if (atBottom || force) {
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+}
+
 function handleUpdatePainter(data) {
     // console.log("players", players);
     const updatedPlayerId = data.playerId;
@@ -487,7 +502,7 @@ function handleTimerUpdate(data) {
 function updatePlayerList(players) {
     const playerList = document.querySelector("#players");
     console.log("Updating player list with:", players);
-    
+
     const generatedHTML = players
         .map(
             (player) =>
@@ -496,11 +511,10 @@ function updatePlayerList(players) {
                 } - Points: ${player.points}</li>`
         )
         .join("");
-    
+
     console.log("Generated HTML:", generatedHTML);
     playerList.innerHTML = generatedHTML;
 }
-
 
 function handleUpdatePlayers(data) {
     players = data.players;

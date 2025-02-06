@@ -3,7 +3,11 @@
 // -----------------------------------------------------------------------------
 @import "../abstracts/variables";
 
-canvas#gameCanvas {
-    width: 600px;
-    height: 400px;
+div.drawing-area {
+    height: 100%;
+    canvas#gameCanvas {
+        width: 900px;
+        height: 600px;
+    }
 }
+
