@@ -587,6 +587,10 @@ function rotateTurn() {
         return;
     }
 
+    if (currentTurnIndex >= players.length) {
+        currentTurnIndex = 0;
+    }
+
     const previousPlayer = players[currentTurnIndex];
     // Only proceed with painter update if we have a valid player
     if (previousPlayer) {
