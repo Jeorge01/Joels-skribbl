@@ -100,8 +100,8 @@ function joinGame() {
 
     const playerId = `${playerName}_${Date.now()}`;
 
-    // const wsUrl = `ws://localhost:8888`;   
-    const wsUrl = `wss://shark-app-4w9xh.ondigitalocean.app`;
+    const wsUrl = `ws://localhost:8888`;   
+    // const wsUrl = `wss://shark-app-4w9xh.ondigitalocean.app`;
     console.log("Connecting to:", wsUrl);
 
     try {
@@ -299,10 +299,12 @@ function joinGame() {
         }
 
         const localTime = new Date(data.timestamp).toLocaleTimeString([], timeOptions);
-        chatBox.innerHTML += `<li class="${correctOrNot}">
-            <span>${data.sender} </span>
-            <span>${localTime} </span>
-            <span>${data.message} </span>
+        chatBox.innerHTML += `<li class="message ${correctOrNot}">
+            <span> 
+                <span class="player">${data.sender} </span>
+                <span class="time">${localTime} </span>
+            </span>
+            <span class="player-message">${data.message} </span>
         </li>`;
     }
 
@@ -352,10 +354,12 @@ function sendMessage(e) {
         displayMessage = `${currentWord} ✓ Correct!`;
     }
 
-    chatBox.innerHTML += `<li class="${correctOrNot}">
-        <span>${playerName} </span>
-        <span>${new Date().toLocaleTimeString([], timeOptions)} </span>
-        <span>${displayMessage}</span>
+    chatBox.innerHTML += `<li class="message ${correctOrNot}">
+        <span> 
+            <span class="player">${playerName} </span>
+            <span class="time">${new Date().toLocaleTimeString([], timeOptions)} </span>
+        </span>
+        <span class="player-message">${displayMessage}</span>
     </li>`;
 
     ws.send(

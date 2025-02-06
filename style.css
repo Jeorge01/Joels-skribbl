@@ -1404,12 +1404,79 @@ div.tools div {
   gap: 10px;
 }
 
-li.disconnection-message span {
-  color: red;
+div.chat-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
 }
-
-li.connection-message span {
+div.chat-container div#timer {
+  font-size: 5rem;
+  display: flex;
+  justify-content: center;
+}
+div.chat-container ul.chat-box {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+div.chat-container ul.chat-box li {
+  display: flex;
+  justify-content: left;
+  width: 100%;
+  min-height: 40px;
+  border-radius: 6px;
+  border: none;
+}
+div.chat-container ul.chat-box li.correct {
+  outline: #2ecc71 solid 2px;
+  padding: 10px;
+}
+div.chat-container ul.chat-box li.disconnection-message {
+  color: red;
+  background-color: rgba(255, 0, 0, 0.3);
+}
+div.chat-container ul.chat-box li.disconnection-message span {
+  display: flex;
+  align-items: center;
+  padding-left: 10px;
+}
+div.chat-container ul.chat-box li.connection-message {
   color: green;
+  background-color: rgba(0, 128, 0, 0.3);
+}
+div.chat-container ul.chat-box li.connection-message span {
+  display: flex;
+  align-items: center;
+  padding-left: 10px;
+}
+div.chat-container ul.chat-box li.message {
+  display: flex;
+  flex-direction: column;
+}
+div.chat-container ul.chat-box li.message span {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+div.chat-container ul.chat-box li.message span span.player {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+div.chat-container ul.chat-box li.message span span.time {
+  font-size: 1rem;
+  opacity: 0.5;
+}
+div.chat-container form.chat-form {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
+div.chat-container button#startGameBtn {
+  width: 100%;
 }
 
 .correct {
