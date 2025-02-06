@@ -26,7 +26,7 @@
         <div class="login-screen">
             <h1>Joels Skribbl</h1>
             <form id="join-form">
-                <input type="text" name="playername" id="playerName" autofocus placeholder="Name"/>
+                <input type="text" name="playername" id="playerName" maxlength="16" autocomplete="off" autofocus placeholder="Name" required/>
                 <input type="submit" value="join game" id="joinBtn" />
             </form>
         </div>
@@ -69,7 +69,7 @@
                 <ul class="chat-box"></ul>
                 <div>
                     <form class="chat-form">
-                        <input type="text" name="chat" id="chatInput" />
+                        <input type="text" name="chat" id="chatInput" maxlength="60" autocomplete="off" />
                         <input type="submit" value="send" id="sendBtn" />
                     </form>
                     <button id="startGameBtn">Start Game</button>
