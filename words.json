@@ -1,13 +1,13 @@
 {
     "englishWords": [
-        "apple",
-        "banana",
-        "cherry",
-        "dragonfruit",
-        "elderberry",
-        "fig",
-        "grape"
-    ],
+        "apple", "banana", "carrot", "dragon", "elephant", "firetruck", "giraffe", "hamburger",
+        "island", "jacket", "kangaroo", "lighthouse", "mountain", "notebook", "octopus",
+        "penguin", "quicksand", "rainbow", "spaceship", "tornado", "umbrella", "volcano",
+        "waterfall", "xylophone", "yacht", "backpack", "caterpillar", "dolphin",
+        "earphones", "flashlight", "glacier", "helicopter", "igloo", "jellyfish", "koala",
+        "lemonade", "marshmallow", "nightmare", "oatmeal", "parrot", "quarantine", "rollercoaster",
+        "submarine", "television", "unicorn", "vampire", "whirlpool", "yogurt", "zookeeper"
+      ],
 
     "swedishWords": [
         "äpple",

@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
         .then((response) => response.json())
         .then((data) => {
             words = data.englishWords;
-            console.log("Words loaded:", words);
+            // console.log("Words loaded:", words);
         });
 
     joinForm.addEventListener("submit", (e) => {
@@ -66,7 +66,7 @@ document.querySelector("#undoBtn").addEventListener("click", () => {
 
 document.querySelector("#startGameBtn").addEventListener("click", () => {
     startGameTurns();
-    console.log("Starting game turns");
+    // console.log("Starting game turns");
 });
 
 canvas.addEventListener("touchstart", (e) => {
@@ -94,7 +94,7 @@ document.addEventListener("keydown", (e) => {
  ******************************/
 
 function joinGame() {
-    console.log("joining game");
+    // console.log("joining game");
 
     playerName = document.querySelector("#playerName").value;
     if (!playerName) return;
@@ -146,7 +146,7 @@ function joinGame() {
 
     ws.onmessage = (event) => {
         try {
-            console.log("Raw received data:", event.data);
+            // console.log("Raw received data:", event.data);
 
             const decodedData =
                 typeof event.data === "string"
@@ -156,14 +156,14 @@ function joinGame() {
             const data = JSON.parse(decodedData); // Parse JSON string
             // console.log("Decoded and parsed data:", data);
 
-            console.log("Received message type:", data.type); // Add this line
+            // console.log("Received message type:", data.type); // Add this line
 
             // Handle message types
             switch (data.type) {
                 case "join":
                     // Set the player's unique ID when they join
                     myPlayerId = data.playerId;
-                    console.log("Player joined with ID:", myPlayerId);
+                    // console.log("Player joined with ID:", myPlayerId);
                     break;
 
                 case "draw":
@@ -247,18 +247,18 @@ function joinGame() {
 
     // Helper function to handle "players" messages
     function handlePlayers(data) {
-        console.log("Raw players data received:", data);
-        console.log("Previous players:", previousPlayers);
+        // console.log("Raw players data received:", data);
+        // console.log("Previous players:", previousPlayers);
 
         if (!Array.isArray(data.players)) {
             console.warn("Invalid players data:", data);
             return;
         }
 
-        console.log("Current players and their painter status:", data.players);
-        data.players.forEach((player) => {
-            console.log(`Player: ${player.name}, Painter: ${player.painter}`);
-        });
+        // console.log("Current players and their painter status:", data.players);
+        // data.players.forEach((player) => {
+        //     console.log(`Player: ${player.name}, Painter: ${player.painter}`);
+        // });
 
         const chatBox = document.querySelector(".chat-box");
 
@@ -284,7 +284,7 @@ function joinGame() {
 
     // Helper function to handle "chat" messages
     function handleChat(data) {
-        console.log("Received chat message:", data);
+        // console.log("Received chat message:", data);
 
         let correctOrNot = "";
         if (data.isCorrectGuess === true) {
@@ -376,7 +376,7 @@ function sendMessage(e) {
 
     chatInput.value = "";
     scrollToBottom();
-    console.log("scrollToBottom");
+    // console.log("scrollToBottom");
 }
 
 function startDrawing(event) {
@@ -486,22 +486,22 @@ function handleUpdatePainter(data) {
         }
     }
 
-    console.log("Painter updated:", players);
-    console.log("Am I the painter?", playerData.painter);
+    // console.log("Painter updated:", players);
+    // console.log("Am I the painter?", playerData.painter);
 
     updatePlayerList(players); // Refresh UI
     // console.log("players again", players);
 }
 
 function handleTimerUpdate(data) {
-    console.log("Timer updated:", data.timeLeft); // Log the updated timer
+    // console.log("Timer updated:", data.timeLeft); // Log the updated timer
     // Update the DOM with the new time
     document.querySelector("#timer").textContent = `${data.timeLeft}s`;
 }
 
 function updatePlayerList(players) {
     const playerList = document.querySelector("#players");
-    console.log("Updating player list with:", players);
+    // console.log("Updating player list with:", players);
 
     const generatedHTML = players
         .map(
@@ -514,7 +514,7 @@ function updatePlayerList(players) {
         )
         .join("");
 
-    console.log("Generated HTML:", generatedHTML);
+    // console.log("Generated HTML:", generatedHTML);
     playerList.innerHTML = generatedHTML;
 }
 
@@ -526,7 +526,7 @@ function handleUpdatePlayers(data) {
         const me = players.find((player) => player.name === myName); // Match by name or another unique identifier
         if (me) {
             myPlayerId = me.id;
-            console.log("My Player ID set from players list:", myPlayerId);
+            // console.log("My Player ID set from players list:", myPlayerId);
         }
     }
 
@@ -534,7 +534,7 @@ function handleUpdatePlayers(data) {
 }
 
 function handleWordChoices(data) {
-    console.log("wordchoices script.js", data);
+    // console.log("wordchoices script.js", data);
     const currentPainter = players.find((player) => player.painter);
     if (currentPainter && currentPainter.id === myPlayerId) {
         const drawingArea = document.querySelector(".drawing-area");
@@ -574,7 +574,7 @@ function handleWordChoices(data) {
 
 function handleCurrentWord(data) {
     currentWord = data.word;
-    console.log("Current word:", currentWord);
+    // console.log("Current word:", currentWord);
     if (playerData.painter) {
         // Create or update word display element
         
@@ -632,7 +632,7 @@ function clearCanvas() {
 
 function handleGameProgress(data) {
     const startGameBtn = document.querySelector("#startGameBtn");
-    console.log("isGameInProgress", data.isGameInProgress);
+    // console.log("isGameInProgress", data.isGameInProgress);
     if (data.isGameInProgress) {
         startGameBtn.style.display = "none";
     } else {
@@ -723,7 +723,7 @@ function undo() {
 }
 
 function chooseWords() {
-    console.log("Choosing words...");
+    // console.log("Choosing words...");
     return new Promise((resolve) => {
         const randomWords = words.sort(() => 0.5 - Math.random()).slice(0, 3);
 
@@ -771,7 +771,7 @@ function chooseWords() {
 }
 
 async function startGameTurns() {
-    console.log(players);
+    // console.log(players);
     if (isGameInProgress) return;
 
     // Wait for word choices from server
