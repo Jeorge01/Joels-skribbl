@@ -506,9 +506,11 @@ function updatePlayerList(players) {
     const generatedHTML = players
         .map(
             (player) =>
-                `<li data-player-id="${player.id}" ${player.painter ? 'class="painter"' : ""}><span><span>${player.name}</span> <span>${
-                    player.painter ? "(Painter)" : ""
-                }</span></span><span>${player.points} Points</span></li>`
+                `<li data-player-id="${player.id}" ${player.painter ? 'class="painter"' : ""}><span><span>${
+                    player.name
+                }</span> <span>${player.painter ? "(Painter)" : ""}</span></span><span>${
+                    player.points
+                } Points</span></li>`
         )
         .join("");
 
@@ -535,6 +537,7 @@ function handleWordChoices(data) {
     console.log("wordchoices script.js", data);
     const currentPainter = players.find((player) => player.painter);
     if (currentPainter && currentPainter.id === myPlayerId) {
+        const drawingArea = document.querySelector(".drawing-area");
         const wordSelectionDiv = document.createElement("div");
         wordSelectionDiv.className = "word-selection";
         wordSelectionDiv.innerHTML = `
@@ -552,7 +555,7 @@ function handleWordChoices(data) {
                                 </div>
                             `;
 
-        document.body.appendChild(wordSelectionDiv);
+        drawingArea.appendChild(wordSelectionDiv);
 
         wordSelectionDiv.addEventListener("click", (e) => {
             if (e.target.classList.contains("word-choice")) {
@@ -574,6 +577,7 @@ function handleCurrentWord(data) {
     console.log("Current word:", currentWord);
     if (playerData.painter) {
         // Create or update word display element
+        
         const wordDisplay = document.createElement("div");
         wordDisplay.id = "current-word";
         wordDisplay.className = "current-word";
@@ -724,6 +728,7 @@ function chooseWords() {
         const randomWords = words.sort(() => 0.5 - Math.random()).slice(0, 3);
 
         if (playerData.painter) {
+            const drawingArea = document.querySelector(".drawing-area");
             const wordSelectionDiv = document.createElement("div");
             wordSelectionDiv.className = "word-selection";
             wordSelectionDiv.innerHTML = `
@@ -741,7 +746,7 @@ function chooseWords() {
                 </div>
             `;
 
-            document.body.appendChild(wordSelectionDiv);
+            drawingArea.appendChild(wordSelectionDiv);
 
             const handleWordSelection = (e) => {
                 if (e.target.classList.contains("word-choice")) {
