@@ -581,6 +581,17 @@ function rotateTurn() {
     if (timerInterval) {
         clearInterval(timerInterval);
     }
+
+    // Check if there are players before proceeding
+    if (!players.length) {
+        return;
+    }
+
+    const previousPlayer = players[currentTurnIndex];
+    // Only proceed with painter update if we have a valid player
+    if (previousPlayer) {
+        broadcastPainterUpdate(previousPlayer.id, false);
+    }
     
     // Reset timer display for all clients
     wss.clients.forEach((client) => {
@@ -609,7 +620,7 @@ function rotateTurn() {
     });
 
     // First update the painter status
-    const previousPlayer = players[currentTurnIndex];
+    // previousPlayer = players[currentTurnIndex];
     broadcastPainterUpdate(previousPlayer.id, false); // Remove painter status from current player
 
     // Rotate to next player
