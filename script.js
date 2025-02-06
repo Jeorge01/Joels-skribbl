@@ -506,9 +506,9 @@ function updatePlayerList(players) {
     const generatedHTML = players
         .map(
             (player) =>
-                `<li data-player-id="${player.id}" ${player.painter ? 'class="painter"' : ""}>${player.name} ${
+                `<li data-player-id="${player.id}" ${player.painter ? 'class="painter"' : ""}><span><span>${player.name}</span> <span>${
                     player.painter ? "(Painter)" : ""
-                } - Points: ${player.points}</li>`
+                }</span></span><span>${player.points} Points</span></li>`
         )
         .join("");
 

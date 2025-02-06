@@ -1396,12 +1396,64 @@ button#startGameBtn {
   color: white;
 }
 
+div.players-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 400px;
+  gap: 10px;
+  padding: 10px;
+}
+div.players-container div {
+  height: 112px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+div.players-container div.player-list {
+  position: relative;
+  flex-grow: 1;
+  align-items: baseline;
+  padding-top: 10px;
+}
+div.players-container div.player-list ul#players {
+  margin: 0;
+  padding: 0;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+div.players-container div.player-list ul#players li {
+  display: flex;
+  flex-direction: column;
+}
+div.players-container div.player-list::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px; /* Thickness of the line */
+  background-color: lightgrey; /* Color of the line */
+}
+div.players-container div.player-list::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px; /* Thickness of the line */
+  background-color: lightgrey; /* Color of the line */
+}
+
 div.drawing-area {
   height: 100%;
 }
 div.drawing-area canvas#gameCanvas {
   width: 900px;
-  height: 600px;
+  height: 555px;
+  margin-top: 132px;
 }
 
 div.tools {
