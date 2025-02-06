@@ -1570,6 +1570,7 @@ div.chat-container ul.chat-box li.disconnection-message span {
   display: flex;
   align-items: center;
   padding-left: 10px;
+  font-size: 1rem;
 }
 div.chat-container ul.chat-box li.connection-message {
   display: flex;
@@ -1581,6 +1582,7 @@ div.chat-container ul.chat-box li.connection-message span {
   display: flex;
   align-items: center;
   padding-left: 10px;
+  font-size: 1rem;
 }
 div.chat-container ul.chat-box li.message {
   display: flex;
