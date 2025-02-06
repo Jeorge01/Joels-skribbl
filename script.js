@@ -658,6 +658,8 @@ function createWinnerElement(data) {
     const winnerDisplay = document.createElement("div");
     winnerDisplay.className = "winner-display";
 
+    const winnerName = data.podium.find(player => player.position === 1)?.name || "No winner??";
+
     const podiumHTML = data.podium
         .map(
             (player) => `
@@ -673,7 +675,7 @@ function createWinnerElement(data) {
     winnerDisplay.innerHTML = `
     <div class="winner-container">
       <h2>🏆 Game Over! 🏆</h2>
-      <h3>${data.winner} wins!</h3>
+      <h3>${winnerName} wins!</h3>
       <div class="podium">
         ${podiumHTML}
       </div>
