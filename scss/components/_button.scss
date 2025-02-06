@@ -10,6 +10,15 @@ input[type=button], input[type=submit], button {
     display: flex;
     justify-content: center;
     align-items: center;
+    height: 40px;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+input[type=text] {
+    border-radius: 8px;
+    height: 40px;
+    padding-left: 10px;
 }
 
 

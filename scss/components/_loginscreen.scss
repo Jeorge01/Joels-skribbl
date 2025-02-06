@@ -1,23 +1,18 @@
 // -----------------------------------------------------------------------------
-// This file contains all styles related to the button component.
+// This file contains all styles related to the login component.
 // -----------------------------------------------------------------------------
 @import "../abstracts/variables";
 
-div.tools {
+div.login-screen {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 10px;
 
-    div#colorPalette {
+    form#join-form {
         display: flex;
-        flex-direction: row;
+        flex-direction: column;
         gap: 10px;
     }
 
-    div {
-        display: flex;
-        gap: 10px;
-    }
 }
