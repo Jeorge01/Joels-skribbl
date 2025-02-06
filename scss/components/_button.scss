@@ -13,12 +13,18 @@ input[type=button], input[type=submit], button {
     height: 40px;
     font-size: 1rem;
     font-weight: 600;
+    transition: filter 0.3s ease;
+}
+
+input[type=button]:hover, input[type=submit]:hover, button:hover {
+    filter: brightness(110%);
 }
 
 input[type=text] {
     border-radius: 8px;
     height: 40px;
     padding-left: 10px;
+    
 }
 
 
