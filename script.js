@@ -101,8 +101,8 @@ function joinGame() {
 
     const playerId = `${playerName}_${Date.now()}`;
 
-    const wsUrl = `ws://localhost:8888`;
-    // const wsUrl = `wss://shark-app-4w9xh.ondigitalocean.app`;
+    // const wsUrl = `ws://localhost:8888`;
+    const wsUrl = `wss://shark-app-4w9xh.ondigitalocean.app`;
     console.log("Connecting to:", wsUrl);
 
     try {
