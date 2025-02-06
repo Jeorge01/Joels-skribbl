@@ -4,6 +4,7 @@
 @import "../abstracts/variables";
 
 div.chat-container {
+    width: 285px;
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -137,6 +138,11 @@ div.chat-container {
             display: flex;
             flex-direction: row;
             gap: 10px;
+
+            input[type="text"] {
+                width: inherit;
+            }
+                
         }
 
         button#startGameBtn {

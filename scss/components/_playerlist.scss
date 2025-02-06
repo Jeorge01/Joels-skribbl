@@ -4,10 +4,11 @@
 @import "../abstracts/variables";
 
 div.players-container {
+    width: 300px;
     display: flex;
     flex-direction: column;
     height: 100%;
-    width: 400px;
+    width: 285px;
     gap: 10px;
     padding: 10px;
 
