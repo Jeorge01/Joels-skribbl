@@ -31,6 +31,8 @@
 
 - [x] Word reveal after round
 
+- Show in playerlist who has guessed correct(knowsword?)
+
 ## Wordselection
 
 - [x] Randomize 3 words and have painter chose one
@@ -45,3 +47,14 @@
 ## Organization code
 
 - Make cases for functions instead of coding everything in the case
+
+## review
+- Canvas still glitchy
+- sometimes if you join the canvas is not cleared
+- painter can guess sometimes
+- sometimes there are two painters
+- display the wordlenght, like in hangman?
+- Indicate which color you have selected
+- co-op mode?
+- instead of slider for pen, make three buttons with predetirmed sizes
+- make a key for drawing, maybe spacebar?
