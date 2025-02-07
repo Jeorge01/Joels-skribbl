@@ -27,6 +27,8 @@ let isGameInProgress = false;
 let previousPlayers = [];
 const chatBox = document.querySelector(".chat-box");
 
+let isSpacePressed = false;
+
 document.addEventListener("DOMContentLoaded", () => {
     const joinForm = document.querySelector("#join-form");
 
@@ -63,6 +65,25 @@ document.querySelectorAll('.brush-btn').forEach(btn => {
         currentBrushSize = parseInt(btn.dataset.size);
     });
 });
+
+document.addEventListener('keydown', (e) => {
+    // Only enable space drawing if not focused on chat input
+    if (e.code === 'Space' && !isSpacePressed && document.activeElement !== document.querySelector('#chatInput')) {
+        e.preventDefault();
+        isSpacePressed = true;
+        isDrawing = true;
+        [lastX, lastY] = [event.offsetX, event.offsetY];
+    }
+});
+
+document.addEventListener('keyup', (e) => {
+    if (e.code === 'Space') {
+        e.preventDefault();
+        isSpacePressed = false;
+        isDrawing = false;
+    }
+});
+
 
 
 document.querySelector("#clearBtn").addEventListener("click", () => {

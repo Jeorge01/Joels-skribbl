@@ -56,5 +56,5 @@
 - display the wordlenght, like in hangman?
 - Indicate which color you have selected
 - co-op mode?
-- instead of slider for pen, make three buttons with predetirmed sizes
-- make a key for drawing, maybe spacebar?
+[x] - instead of slider for pen, make three buttons with predetirmed sizes
+[x] - make a key for drawing, maybe spacebar?
