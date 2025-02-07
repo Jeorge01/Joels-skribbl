@@ -583,6 +583,9 @@ function rotateTurn() {
         clearInterval(timerInterval);
     }
 
+    // Clear drawing history
+    drawingHistory = [];
+
     // Check if there are players before proceeding
     if (!players.length) {
         return;
