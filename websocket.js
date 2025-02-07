@@ -109,14 +109,13 @@ wss.on("connection", (ws) => {
         const disconnectedPlayer = clients.get(ws);
         console.log("Client disconnected");
 
-        const wasPainter = disconnectedPlayer && disconnectedPlayer.painter;
-
         clients.delete(ws);
         handlePlayers(ws); 
         players = Array.from(clients.values()); // Sync players array with clients Map
 
-        if (isGameInProgress && players.length < 2) {
+        if (isGameInProgress && (players.length < 2 || players.every(player => player.painter))) {
             isGameInProgress = false;
+            clearInterval(timerInterval);
 
             // Notify remaining clients to cancel word selection
             wss.clients.forEach((client) => {
@@ -126,12 +125,13 @@ wss.on("connection", (ws) => {
                             type: "cancelWordSelection",
                         })
                     );
+                    // Reset painter status
+                    const playerData = clients.get(client);
+                    if (playerData) {
+                        playerData.painter = false;
+                    }
                 }
             });
-
-            
-        }
-        if (wasPainter) {
             rotateTurn();
         }
 
