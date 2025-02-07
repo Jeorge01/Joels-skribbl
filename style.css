@@ -137,8 +137,7 @@ a {
 abbr[title] {
   border-bottom: none;
   text-decoration: underline;
-  -webkit-text-decoration: underline dotted;
-          text-decoration: underline dotted;
+  text-decoration: underline dotted;
 }
 
 /**
@@ -882,8 +881,7 @@ textarea {
 .screen-reader-text {
   border: 0;
   clip: rect(1px, 1px, 1px, 1px);
-  -webkit-clip-path: inset(50%);
-          clip-path: inset(50%);
+  clip-path: inset(50%);
   height: 1px;
   margin: -1px;
   overflow: hidden;
@@ -898,8 +896,7 @@ textarea {
   border-radius: 3px;
   box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.6);
   clip: auto !important;
-  -webkit-clip-path: none;
-          clip-path: none;
+  clip-path: none;
   color: #21759b;
   display: block;
   font-size: 0.875rem;
@@ -1020,8 +1017,7 @@ a {
 abbr[title] {
   border-bottom: none; /* 1 */
   text-decoration: underline; /* 2 */
-  -webkit-text-decoration: underline dotted;
-          text-decoration: underline dotted; /* 2 */
+  text-decoration: underline dotted; /* 2 */
 }
 
 /**
@@ -1570,7 +1566,8 @@ div.chat-container ul.chat-box li.disconnection-message span {
   display: flex;
   align-items: center;
   padding-left: 10px;
-  font-size: 1rem;
+  font-size: 0.825rem;
+  white-space: nowrap;
 }
 div.chat-container ul.chat-box li.connection-message {
   display: flex;
@@ -1582,7 +1579,8 @@ div.chat-container ul.chat-box li.connection-message span {
   display: flex;
   align-items: center;
   padding-left: 10px;
-  font-size: 1rem;
+  font-size: 0.825rem;
+  white-space: nowrap;
 }
 div.chat-container ul.chat-box li.message {
   display: flex;
