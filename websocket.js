@@ -45,6 +45,7 @@ wss.on("connection", (ws) => {
 
         drawingHistory.forEach((drawData) => {
             ws.send(JSON.stringify(drawData));
+            console.log("drawData", drawData)
         });
 
         ws.on("message", (message) => {

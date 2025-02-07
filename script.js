@@ -58,17 +58,17 @@ document.querySelectorAll(".color-btn").forEach((btn) => {
 });
 
 // Add this after your existing color button event listeners
-document.querySelectorAll('.brush-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('.brush-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
+document.querySelectorAll(".brush-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+        document.querySelectorAll(".brush-btn").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
         currentBrushSize = parseInt(btn.dataset.size);
     });
 });
 
-document.addEventListener('keydown', (e) => {
+document.addEventListener("keydown", (e) => {
     // Only enable space drawing if not focused on chat input
-    if (e.code === 'Space' && !isSpacePressed && document.activeElement !== document.querySelector('#chatInput')) {
+    if (e.code === "Space" && !isSpacePressed && document.activeElement !== document.querySelector("#chatInput")) {
         e.preventDefault();
         isSpacePressed = true;
         isDrawing = true;
@@ -76,15 +76,13 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-document.addEventListener('keyup', (e) => {
-    if (e.code === 'Space') {
+document.addEventListener("keyup", (e) => {
+    if (e.code === "Space") {
         e.preventDefault();
         isSpacePressed = false;
         isDrawing = false;
     }
 });
-
-
 
 document.querySelector("#clearBtn").addEventListener("click", () => {
     if (!playerData.painter) return;
@@ -126,7 +124,11 @@ document.addEventListener("keydown", (e) => {
  ******************************/
 
 function joinGame() {
-    // console.log("joining game");
+    console.log("Join game canvas state:", {
+        dimensions: [canvas.width, canvas.height],
+        context: ctx,
+        visibility: canvas.style.display
+    });
 
     playerName = document.querySelector("#playerName").value;
     if (!playerName) return;
@@ -148,16 +150,14 @@ function joinGame() {
             if (ws.readyState === WebSocket.OPEN) {
                 document.querySelector(".login-screen").style.display = "none";
                 document.querySelector(".game-container").style.display = "flex";
+
+                // resize canvas before drawing
+                resizeCanvas();
+
                 document.querySelector("#chatInput").focus();
-
-                setTimeout(() => {
-                    resizeCanvas();
-                }, 100);
-
                 const sendBtn = document.querySelector("#sendBtn");
                 sendBtn.addEventListener("click", sendMessage);
 
-                // playerData.painter = true;
 
                 ws.send(
                     JSON.stringify({
@@ -186,9 +186,6 @@ function joinGame() {
                     : new TextDecoder().decode(event.data); // Decode binary Buffer
 
             const data = JSON.parse(decodedData); // Parse JSON string
-            // console.log("Decoded and parsed data:", data);
-
-            // console.log("Received message type:", data.type); // Add this line
 
             // Handle message types
             switch (data.type) {
@@ -316,7 +313,6 @@ function joinGame() {
 
     // Helper function to handle "chat" messages
     function handleChat(data) {
-        // console.log("Received chat message:", data);
 
         let correctOrNot = "";
         if (data.isCorrectGuess === true) {
@@ -357,6 +353,10 @@ function joinGame() {
 }
 
 function setupCanvas() {
+    console.log("Canvas dimensions:", canvas.width, canvas.height);
+    console.log("Canvas context:", ctx);
+    console.log("Canvas visibility:", canvas.style.display);
+
     canvas.addEventListener("mousedown", startDrawing);
     canvas.addEventListener("mousemove", draw);
     canvas.addEventListener("mouseup", stopDrawing);
@@ -408,7 +408,6 @@ function sendMessage(e) {
 
     chatInput.value = "";
     scrollToBottom();
-    // console.log("scrollToBottom");
 }
 
 function startDrawing(event) {
@@ -418,8 +417,6 @@ function startDrawing(event) {
 }
 
 function draw(event) {
-    // console.log("players", players);
-    // console.log("myPlayerId", myPlayerId);
     const currentPainter = players.find((player) => player.painter);
 
     // Check if the current user is the painter
@@ -458,6 +455,7 @@ function draw(event) {
 }
 
 function drawLine(x0, y0, x1, y1, color, width) {
+    console.log('drawLine called from:', new Error().stack);
     ctx.beginPath();
     ctx.moveTo(x0, y0);
     ctx.lineTo(x1, y1);
@@ -496,7 +494,6 @@ function scrollToBottom(force = false) {
 }
 
 function handleUpdatePainter(data) {
-    // console.log("players", players);
     const updatedPlayerId = data.playerId;
     const isPainter = data.painter;
 
@@ -518,11 +515,7 @@ function handleUpdatePainter(data) {
         }
     }
 
-    // console.log("Painter updated:", players);
-    // console.log("Am I the painter?", playerData.painter);
-
     updatePlayerList(players); // Refresh UI
-    // console.log("players again", players);
 }
 
 function handleTimerUpdate(data) {
@@ -538,8 +531,10 @@ function updatePlayerList(players) {
     const generatedHTML = players
         .map(
             (player) =>
-                `<li data-player-id="${player.id}" ${player.painter ? 'class="painter"' : ""}><span><span>${player.name
-                }</span> <span>${player.painter ? "(Painter)" : ""}</span></span><span>${player.points
+                `<li data-player-id="${player.id}" ${player.painter ? 'class="painter"' : ""}><span><span>${
+                    player.name
+                }</span> <span>${player.painter ? "(Painter)" : ""}</span></span><span>${
+                    player.points
                 } Points</span></li>`
         )
         .join("");
@@ -575,12 +570,12 @@ function handleWordChoices(data) {
                                     <h3>Choose a word to draw:</h3>
                                     <div class="word-buttons">
                                         ${data.words
-                .map(
-                    (word) => `
+                                            .map(
+                                                (word) => `
                                             <button class="word-choice">${word}</button>
                                         `
-                )
-                .join("")}
+                                            )
+                                            .join("")}
                                     </div>
                                 </div>
                             `;
@@ -688,7 +683,7 @@ function createWinnerElement(data) {
     const winnerDisplay = document.createElement("div");
     winnerDisplay.className = "winner-display";
 
-    const winnerName = data.podium.find(player => player.position === 1)?.name || "No winner??";
+    const winnerName = data.podium.find((player) => player.position === 1)?.name || "No winner??";
 
     const podiumHTML = data.podium
         .map(
@@ -768,12 +763,12 @@ function chooseWords() {
                     <h3>Choose a word to draw:</h3>
                     <div class="word-buttons">
                         ${randomWords
-                    .map(
-                        (word) => `
+                            .map(
+                                (word) => `
                             <button class="word-choice">${word}</button>
                         `
-                    )
-                    .join("")}
+                            )
+                            .join("")}
                     </div>
                 </div>
             `;
