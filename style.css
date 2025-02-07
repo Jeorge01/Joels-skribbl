@@ -1386,6 +1386,11 @@ input[type=text] {
   padding-left: 10px;
 }
 
+.brush-btn.active {
+  border: 2px solid #000 !important;
+  transform: scale(1.1) !important;
+}
+
 input#clearBtn {
   background-color: #e74c3c;
   color: white;
@@ -1652,4 +1657,4 @@ div.login-screen form#join-form {
   display: flex;
   flex-direction: column;
   gap: 10px;
-}/*# sourceMappingURL=style.css.map */
+}

@@ -5,6 +5,7 @@ let ctx = canvas.getContext("2d");
 let lastX, lastY;
 let playerName;
 let currentColor = "#000000";
+let currentBrushSize = 8;
 // const PORT = window.CONFIG.PORT || 3000;
 let strokeHistory = [];
 let currentStroke = [];
@@ -53,6 +54,16 @@ document.querySelectorAll(".color-btn").forEach((btn) => {
         currentColor = btn.dataset.color;
     });
 });
+
+// Add this after your existing color button event listeners
+document.querySelectorAll('.brush-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.brush-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentBrushSize = parseInt(btn.dataset.size);
+    });
+});
+
 
 document.querySelector("#clearBtn").addEventListener("click", () => {
     if (!playerData.painter) return;
@@ -397,7 +408,7 @@ function draw(event) {
     }
 
     if (!isDrawing) return;
-    const width = document.querySelector("#brushSize").value;
+    const width = currentBrushSize;
 
     currentStroke.push({
         x0: lastX,
@@ -506,10 +517,8 @@ function updatePlayerList(players) {
     const generatedHTML = players
         .map(
             (player) =>
-                `<li data-player-id="${player.id}" ${player.painter ? 'class="painter"' : ""}><span><span>${
-                    player.name
-                }</span> <span>${player.painter ? "(Painter)" : ""}</span></span><span>${
-                    player.points
+                `<li data-player-id="${player.id}" ${player.painter ? 'class="painter"' : ""}><span><span>${player.name
+                }</span> <span>${player.painter ? "(Painter)" : ""}</span></span><span>${player.points
                 } Points</span></li>`
         )
         .join("");
@@ -545,12 +554,12 @@ function handleWordChoices(data) {
                                     <h3>Choose a word to draw:</h3>
                                     <div class="word-buttons">
                                         ${data.words
-                                            .map(
-                                                (word) => `
+                .map(
+                    (word) => `
                                             <button class="word-choice">${word}</button>
                                         `
-                                            )
-                                            .join("")}
+                )
+                .join("")}
                                     </div>
                                 </div>
                             `;
@@ -577,7 +586,7 @@ function handleCurrentWord(data) {
     // console.log("Current word:", currentWord);
     if (playerData.painter) {
         // Create or update word display element
-        
+
         const wordDisplay = document.createElement("div");
         wordDisplay.id = "current-word";
         wordDisplay.className = "current-word";
@@ -738,12 +747,12 @@ function chooseWords() {
                     <h3>Choose a word to draw:</h3>
                     <div class="word-buttons">
                         ${randomWords
-                            .map(
-                                (word) => `
+                    .map(
+                        (word) => `
                             <button class="word-choice">${word}</button>
                         `
-                            )
-                            .join("")}
+                    )
+                    .join("")}
                     </div>
                 </div>
             `;
