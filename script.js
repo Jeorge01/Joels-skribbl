@@ -72,7 +72,7 @@ document.addEventListener('keydown', (e) => {
         e.preventDefault();
         isSpacePressed = true;
         isDrawing = true;
-        [lastX, lastY] = [event.offsetX, event.offsetY];
+        [lastX, lastY] = [e.offsetX, e.offsetY];
     }
 });
 
