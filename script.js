@@ -532,7 +532,7 @@ function updatePlayerList(players) {
             (player) =>
                 `<li data-player-id="${player.id}" ${player.painter ? 'class="painter"' : ""}><span><span>${
                     player.name
-                }</span> <span>${player.painter ? "(Painter)" : ""}</span></span><span>${
+                } ${(!player.painter && player.knowsWord) ? '✓' : ''}</span> <span>${player.painter ? "(Painter)" : ""}</span></span><span>${
                     player.points
                 } Points</span></li>`
         )

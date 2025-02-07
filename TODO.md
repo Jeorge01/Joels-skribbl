@@ -31,7 +31,7 @@
 
 - [x] Word reveal after round
 
-- Show in playerlist who has guessed correct(knowsword?)
+- [x] Show in playerlist who has guessed correct(knowsword?)
 
 ## Wordselection
 
@@ -54,7 +54,7 @@
 - painter can guess sometimes
 - sometimes there are two painters
 - display the wordlenght, like in hangman?
-[x] - Indicate which color you have selected (Looks alright but the black border "smälter in" on the black color)
+- [x] Indicate which color you have selected (Looks alright but the black border "smälter in" on the black color)
 - co-op mode?
-[x] - instead of slider for pen, make three buttons with predetirmed sizes
-[x] - make a key for drawing, maybe spacebar?
+- [x] instead of slider for pen, make three buttons with predetirmed sizes
+- [x] make a key for drawing, maybe spacebar?
