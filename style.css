@@ -1549,12 +1549,12 @@ div.chat-container ul.chat-box li .chat-box .player-message {
   word-break: break-word;
 }
 div.chat-container ul.chat-box li.message {
-  min-height: 60px;
+  min-height: 40px;
 }
 div.chat-container ul.chat-box li.correct {
   border: #2ecc71 solid 2px;
   padding: 10px;
-  min-height: 85px;
+  min-height: 60px;
 }
 div.chat-container ul.chat-box li.disconnection-message {
   display: flex;
@@ -1585,18 +1585,20 @@ div.chat-container ul.chat-box li.connection-message span {
 div.chat-container ul.chat-box li.message {
   display: flex;
   flex-direction: column;
+  justify-content: center;
 }
 div.chat-container ul.chat-box li.message span {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  font-size: 0.825rem;
 }
 div.chat-container ul.chat-box li.message span span.player {
-  font-size: 1.2rem;
+  font-size: 1rem;
   font-weight: 600;
 }
 div.chat-container ul.chat-box li.message span span.time {
-  font-size: 1rem;
+  font-size: 0.825rem;
   opacity: 0.5;
 }
 div.chat-container ul.chat-box::before {

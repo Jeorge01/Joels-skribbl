@@ -49,13 +49,13 @@ div.chat-container {
         }
 
         li.message {
-            min-height: 60px;
+            min-height: 40px;
         }
 
         li.correct {
             border: #2ecc71 solid 2px;
             padding: 10px;
-            min-height: 85px;
+            min-height: 60px;
         }
 
         li.disconnection-message {
@@ -91,19 +91,21 @@ div.chat-container {
         li.message {
             display: flex;
             flex-direction: column;
+            justify-content: center;
 
             span {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
+                font-size: 0.825rem;
 
                 span.player {
-                    font-size: 1.2rem;
+                    font-size: 1rem;
                     font-weight: 600;
                 }
 
                 span.time {
-                    font-size: 1rem;
+                    font-size: 0.825rem;
                     opacity: 0.5;
                 }
             }
