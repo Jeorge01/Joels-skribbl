@@ -3,8 +3,8 @@
 - Coded rooms so you can join friends
 - kick people
 - Customize rules, like max players and round lentgh
-- Fix the displaying of connected and disconnected players
-- sometimes when joining game, the cnavas is 0x0 size
+- [x]Fix the displaying of connected and disconnected players
+- [x]sometimes when joining game, the cnavas is 0x0 size
 - [x] Hides gueeses from other guessers when it's value is correct
 - [x] When all guessers have guessed right, the round stops whithout having to wait for the timer to end
 - [x] painters messages can only be seen by people who already guessed correctly
@@ -49,9 +49,9 @@
 - Make cases for functions instead of coding everything in the case
 
 ## review
-- Canvas still glitchy
-- sometimes if you join the canvas is not cleared
-- painter can guess sometimes
+- [x]Canvas still glitchy
+- [x]sometimes if you join the canvas is not cleared
+- [x]painter can guess sometimes
 - sometimes there are two painters
 - display the wordlenght, like in hangman?
 - [x] Indicate which color you have selected (Looks alright but the black border "smälter in" on the black color)
