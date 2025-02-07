@@ -30,8 +30,8 @@ input[type=text] {
 .brush-btn{
 
     &.active {
-        border: 2px solid #000 !important;
-        transform: scale(1.1) !important;
+        border: 2px solid #000;
+        transform: scale(1.1);
     }
 }
 
