@@ -122,11 +122,6 @@ document.addEventListener("keydown", (e) => {
  * HANDLE JOIN GAME    *
  ******************************/
 function joinGame() {
-    console.log("Join game canvas state:", {
-        dimensions: [canvas.width, canvas.height],
-        context: ctx,
-        visibility: canvas.style.display
-    });
 
     playerName = document.querySelector("#playerName").value;
     if (!playerName) return;
@@ -350,10 +345,6 @@ function joinGame() {
 }
 
 function setupCanvas() {
-    console.log("Canvas dimensions:", canvas.width, canvas.height);
-    console.log("Canvas context:", ctx);
-    console.log("Canvas visibility:", canvas.style.display);
-
     canvas.addEventListener("mousedown", startDrawing);
     canvas.addEventListener("mousemove", draw);
     canvas.addEventListener("mouseup", stopDrawing);
