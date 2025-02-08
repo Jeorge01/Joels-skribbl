@@ -1480,6 +1480,9 @@ div.drawing-area {
 div.drawing-area canvas#gameCanvas {
   width: 900px;
   height: 555px;
+  border: 2px solid rgb(102, 102, 102);
+  background-color: white;
+  border-radius: 4px;
   margin-top: 132px;
 }
 div.drawing-area div.word-selection {
@@ -1662,4 +1665,4 @@ div.login-screen form#join-form {
   display: flex;
   flex-direction: column;
   gap: 10px;
-}
+}/*# sourceMappingURL=style.css.map */
