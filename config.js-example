@@ -1,0 +1,6 @@
+window.CONFIG = {
+    PORT: "(your port number)",
+    DOMAIN: "(your domain or localhost)",
+    // "ws://localhost:"
+    // "wss://domain"
+};

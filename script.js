@@ -6,7 +6,6 @@ let lastX, lastY;
 let playerName;
 let currentColor = "#000000";
 let currentBrushSize = 8;
-// const PORT = window.CONFIG.PORT || 3000;
 let strokeHistory = [];
 let currentStroke = [];
 let playerData = {
@@ -122,7 +121,6 @@ document.addEventListener("keydown", (e) => {
 /******************************
  * HANDLE JOIN GAME    *
  ******************************/
-
 function joinGame() {
     console.log("Join game canvas state:", {
         dimensions: [canvas.width, canvas.height],
@@ -135,8 +133,7 @@ function joinGame() {
 
     const playerId = `${playerName}_${Date.now()}`;
 
-    const wsUrl = `ws://localhost:8888`;
-    // const wsUrl = `wss://shark-app-4w9xh.ondigitalocean.app`;
+    const wsUrl = `${window.CONFIG.DOMAIN}${window.CONFIG.PORT}`;
     console.log("Connecting to:", wsUrl);
 
     try {

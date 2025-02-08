@@ -26,10 +26,10 @@
 - [x] Word reveal after round
 - [x] Point system implementation
 - [x] Podium for winners
-- [ ] Max points: 1200 per round
-- [ ] 20 points decrease per second
-- [ ] Painter gets 50% of guessers points
-- [ ] First to 8000 points wins
+    - [ ] Max points: 1200 per round
+    - [ ] 20 points decrease per second
+    - [ ] Painter gets 50% of guessers points
+    - [ ] First to 8000 points wins
 
 
 ### Tools
