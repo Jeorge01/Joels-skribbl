@@ -25,6 +25,7 @@
 - [x] Add round timer
 - [x] Word reveal after round
 - [x] Point system implementation
+- [ ] playerlist should be ordered by points
 - [x] Podium for winners
     - [ ] Max points: 1200 per round
     - [ ] 20 points decrease per second
