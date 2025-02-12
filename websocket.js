@@ -16,6 +16,7 @@ let currentTurnIndex = 0; // To track the current player
 let gameInterval; // Interval for game rounds
 let timerInterval; // Interval for timer updates
 let currentWord = ""; // To store the current word
+let usedWords = []; // To keep track of used words
 let isGameInProgress = false; // To track if a game is in progress
 let timeLeft = 0; // To store the remaining time
 
@@ -111,7 +112,7 @@ wss.on("connection", (ws) => {
         console.log("Client disconnected");
 
         clients.delete(ws);
-        handlePlayers(ws); 
+        handlePlayers(ws);
         players = Array.from(clients.values()); // Sync players array with clients Map
 
         if (isGameInProgress && (players.length < 2 || players.every(player => player.painter))) {
@@ -189,7 +190,7 @@ function handleJoin(ws, data) {
 function handlePlayers(ws) {
     const previousPlayersList = Array.from(clients.values());
     const currentPlayersList = Array.from(clients.values());
-    
+
     wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
             client.send(JSON.stringify({
@@ -295,8 +296,7 @@ function handleUpdatePainter(ws, data) {
     broadcastPlayers();
 
     console.log(
-        `Painter status updated: Player ${updatedPlayerId} is ${
-            isPainter ? "now the painter" : "no longer the painter"
+        `Painter status updated: Player ${updatedPlayerId} is ${isPainter ? "now the painter" : "no longer the painter"
         }`
     );
 }
@@ -354,12 +354,12 @@ function handleWordchoices(ws, data) {
                             <h3>Choose a word to draw:</h3>
                             <div class="word-buttons">
                                 ${data.words
-                                    .map(
-                                        (word) => `
+                .map(
+                    (word) => `
                                     <button class="word-choice">${word}</button>
                                 `
-                                    )
-                                    .join("")}
+                )
+                .join("")}
                             </div>
                         </div>
                     `;
@@ -404,8 +404,12 @@ function handleWordchoices(ws, data) {
  ******************************/
 function handleWordSelected(ws, data) {
     console.log("Word selected, starting timer!");
+
     //Store selected word
     currentWord = data.word;
+
+    usedWords.push(currentWord);
+
     // Send word only to the painter
 
     wss.clients.forEach((client) => {
@@ -471,6 +475,14 @@ loadWords();
 function chooseWords() {
     // Get 3 random words from the words array
     const words = JSON.parse(fs.readFileSync("words.json")).englishWords;
+    const availableWords = words.filter(word => !usedWords.includes(word));
+    console.log("All words:", words);
+    console.log("Available words:", availableWords);
+
+    if (availableWords.length < 3) {
+        usedWords = [];
+        return words.sort(() => 0.5 - Math.random()).slice(0, 3);
+    }
     return words.sort(() => 0.5 - Math.random()).slice(0, 3);
 }
 
@@ -500,6 +512,7 @@ function startGame(ws) {
     }
 
     isGameInProgress = true;
+    usedWords = [];
 
     isGameInProgressCheck();
 
@@ -600,7 +613,7 @@ function rotateTurn() {
     if (previousPlayer) {
         broadcastPainterUpdate(previousPlayer.id, false);
     }
-    
+
     // Reset timer display for all clients
     wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
