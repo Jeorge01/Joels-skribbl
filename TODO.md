@@ -19,7 +19,7 @@
 - [x] Randomize 3 words for painter to choose
 - [ ] Combine multiple wordpacks
 - [ ] Custom wordpack creation
-- [ ]cant have same word twice in a game
+- [x]cant have same word twice in a game
 
 ### Timer & Scoring
 - [x] Add round timer
