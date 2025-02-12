@@ -1,3 +1,5 @@
+import { setupCanvas } from "./clients/hooks/useCanvas.js";
+
 let ws;
 let isDrawing = false;
 let canvas = document.querySelector("#gameCanvas");
@@ -143,8 +145,11 @@ function joinGame() {
                 document.querySelector(".login-screen").style.display = "none";
                 document.querySelector(".game-container").style.display = "flex";
 
+                const canvas = document.querySelector("canvas");
+                setupCanvas(canvas, strokeHistory, startDrawing, draw, stopDrawing);
+
                 // resize canvas before drawing
-                resizeCanvas();
+                // resizeCanvas();
 
                 document.querySelector("#chatInput").focus();
                 const sendBtn = document.querySelector("#sendBtn");
@@ -344,13 +349,13 @@ function joinGame() {
     });
 }
 
-function setupCanvas() {
-    canvas.addEventListener("mousedown", startDrawing);
-    canvas.addEventListener("mousemove", draw);
-    canvas.addEventListener("mouseup", stopDrawing);
-    canvas.addEventListener("mouseout", stopDrawing);
-    resizeCanvas();
-}
+// function setupCanvas() {
+//     canvas.addEventListener("mousedown", startDrawing);
+//     canvas.addEventListener("mousemove", draw);
+//     canvas.addEventListener("mouseup", stopDrawing);
+//     canvas.addEventListener("mouseout", stopDrawing);
+//     resizeCanvas();
+// }
 
 function sendMessage(e) {
     e.preventDefault();
@@ -622,19 +627,19 @@ function handleWordReveal(data) {
     }, 5000);
 }
 
-function resizeCanvas() {
-    const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width;
-    canvas.height = rect.height;
+// function resizeCanvas() {
+//     const rect = canvas.getBoundingClientRect();
+//     canvas.width = rect.width;
+//     canvas.height = rect.height;
 
-    strokeHistory.forEach(stroke => {
-        stroke.forEach(point => {
-            drawLine(point.x0, point.y0, point.x1, point.y1, point.color, point.width);
-        });
-    });
-}
+//     strokeHistory.forEach(stroke => {
+//         stroke.forEach(point => {
+//             drawLine(point.x0, point.y0, point.x1, point.y1, point.color, point.width);
+//         });
+//     });
+// }
 
-window.addEventListener("resize", resizeCanvas);
+// window.addEventListener("resize", resizeCanvas);
 
 function clearCanvas() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
