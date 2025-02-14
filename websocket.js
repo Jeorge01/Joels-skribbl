@@ -483,7 +483,7 @@ function chooseWords() {
         usedWords = [];
         return words.sort(() => 0.5 - Math.random()).slice(0, 3);
     }
-    return words.sort(() => 0.5 - Math.random()).slice(0, 3);
+    return availableWords.sort(() => 0.5 - Math.random()).slice(0, 3);
 }
 
 /****************
