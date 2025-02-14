@@ -1,18 +1,6 @@
 export function setupCanvas(canvas, strokeHistory, startDrawing, draw, stopDrawing) {
     if (!canvas) return;
 
-    // const startDrawing = (e) => {
-    //     // Your drawing start logic here
-    // };
-
-    // const draw = (e) => {
-    //     // Your drawing logic here
-    // };
-
-    // const stopDrawing = () => {
-    //     // Your stop drawing logic here
-    // };
-
     function resizeCanvas() {
         const rect = canvas.getBoundingClientRect();
         canvas.width = rect.width;
@@ -36,11 +24,7 @@ export function setupCanvas(canvas, strokeHistory, startDrawing, draw, stopDrawi
 
     resizeCanvas();
 
-    // Cleanup function (optional if needed elsewhere)
-    return () => {
-        canvas.removeEventListener("mousedown", startDrawing);
-        canvas.removeEventListener("mousemove", draw);
-        canvas.removeEventListener("mouseup", stopDrawing);
-        canvas.removeEventListener("mouseout", stopDrawing);
-    };
+    return {
+        resizeCanvas
+      };
 }

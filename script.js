@@ -3,8 +3,7 @@ import { setupChat } from "./clients/hooks/useChat.js";
 
 let ws;
 let isDrawing = false;
-let canvas = document.querySelector("#gameCanvas");
-let ctx = canvas.getContext("2d");
+
 let lastX, lastY;
 let playerName;
 let currentColor = "#000000";
@@ -30,6 +29,10 @@ let previousPlayers = [];
 const chatBox = document.querySelector(".chat-box");
 const chat = setupChat(chatBox);
 
+const canvas = document.querySelector("canvas");
+let ctx = canvas.getContext("2d");
+const manageCanvas = setupCanvas(canvas, strokeHistory, startDrawing, draw, stopDrawing);
+
 let isSpacePressed = false;
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -48,7 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
         joinGame();
     });
 
-    setupCanvas();
+    manageCanvas.resizeCanvas();
 });
 
 document.querySelectorAll(".color-btn").forEach((btn) => {
@@ -148,8 +151,7 @@ function joinGame() {
                 document.querySelector(".login-screen").style.display = "none";
                 document.querySelector(".game-container").style.display = "flex";
 
-                const canvas = document.querySelector("canvas");
-                setupCanvas(canvas, strokeHistory, startDrawing, draw, stopDrawing);
+                manageCanvas.resizeCanvas();
 
                 // resize canvas before drawing
                 // resizeCanvas();
@@ -330,15 +332,6 @@ function joinGame() {
         }
     });
 }
-
-// function setupCanvas() {
-//     canvas.addEventListener("mousedown", startDrawing);
-//     canvas.addEventListener("mousemove", draw);
-//     canvas.addEventListener("mouseup", stopDrawing);
-//     canvas.addEventListener("mouseout", stopDrawing);
-//     resizeCanvas();
-// }
-
 
 function startDrawing(event) {
     if (!playerData.painter) return;
