@@ -1,4 +1,5 @@
 import { setupCanvas } from "./clients/hooks/useCanvas.js";
+import { setupChat } from "./clients/hooks/useChat.js";
 
 let ws;
 let isDrawing = false;
@@ -27,6 +28,7 @@ let currentWord = null;
 let isGameInProgress = false;
 let previousPlayers = [];
 const chatBox = document.querySelector(".chat-box");
+const chat = setupChat(chatBox);
 
 let isSpacePressed = false;
 
@@ -142,6 +144,7 @@ function joinGame() {
 
         ws.onopen = () => {
             if (ws.readyState === WebSocket.OPEN) {
+                chat.setWebSocket(ws);
                 document.querySelector(".login-screen").style.display = "none";
                 document.querySelector(".game-container").style.display = "flex";
 
@@ -153,7 +156,11 @@ function joinGame() {
 
                 document.querySelector("#chatInput").focus();
                 const sendBtn = document.querySelector("#sendBtn");
-                sendBtn.addEventListener("click", sendMessage);
+                sendBtn.addEventListener("click", (e)=>
+                {
+                    e.preventDefault();
+                    chat.sendMessage(playerName, currentWord, playerData);
+                });
 
 
                 ws.send(
@@ -201,7 +208,7 @@ function joinGame() {
                     break;
 
                 case "chat":
-                    handleChat(data);
+                    chat.handleChat(data);
                     break;
 
                 case "clear":
@@ -309,31 +316,6 @@ function joinGame() {
     }
 
     // Helper function to handle "chat" messages
-    function handleChat(data) {
-
-        let correctOrNot = "";
-        if (data.isCorrectGuess === true) {
-            correctOrNot = "correct";
-        }
-
-        const chatBox = document.querySelector(".chat-box");
-        const timeOptions = { hour: "2-digit", minute: "2-digit" };
-
-        if (!data.sender || !data.message || !data.timestamp) {
-            console.warn("Invalid chat data:", data);
-            return;
-        }
-
-        const localTime = new Date(data.timestamp).toLocaleTimeString([], timeOptions);
-        chatBox.innerHTML += `<li class="message ${correctOrNot}">
-            <span> 
-                <span class="player">${data.sender} </span>
-                <span class="time">${localTime} </span>
-            </span>
-            <span class="player-message">${data.message} </span>
-        </li>`;
-        scrollToBottom();
-    }
 
     window.addEventListener("beforeunload", () => {
         if (ws && ws.readyState === WebSocket.OPEN) {
@@ -357,51 +339,6 @@ function joinGame() {
 //     resizeCanvas();
 // }
 
-function sendMessage(e) {
-    e.preventDefault();
-    const chatInput = document.querySelector("#chatInput");
-    const message = chatInput.value;
-    const timestamp = Date.now();
-
-    if (!message) return;
-
-    if (playerData.painter && message === currentWord) {
-        chatInput.value = "";
-        return;
-    }
-
-    const chatBox = document.querySelector(".chat-box");
-    const timeOptions = { hour: "2-digit", minute: "2-digit" };
-
-    let correctOrNot = "";
-    let displayMessage = message;
-
-    if (message === currentWord) {
-        correctOrNot = "correct";
-        displayMessage = `${currentWord} ✓ Correct!`;
-    }
-
-    chatBox.innerHTML += `<li class="message ${correctOrNot}">
-        <span> 
-            <span class="player">${playerName} </span>
-            <span class="time">${new Date().toLocaleTimeString([], timeOptions)} </span>
-        </span>
-        <span class="player-message">${displayMessage}</span>
-    </li>`;
-    scrollToBottom();
-
-    ws.send(
-        JSON.stringify({
-            type: "chat",
-            message: message,
-            sender: playerName,
-            timestamp: timestamp,
-        })
-    );
-
-    chatInput.value = "";
-    scrollToBottom();
-}
 
 function startDrawing(event) {
     if (!playerData.painter) return;
@@ -473,16 +410,6 @@ function handleUndo(data) {
             drawLine(point.x0, point.y0, point.x1, point.y1, point.color, point.width);
         });
     });
-}
-
-function scrollToBottom(force = false) {
-    // Check if user is at the bottom before adding new messages
-    const atBottom = chatBox.scrollHeight - chatBox.scrollTop === chatBox.clientHeight;
-
-    // Only scroll if the user was already at the bottom
-    if (atBottom || force) {
-        chatBox.scrollTop = chatBox.scrollHeight;
-    }
 }
 
 function handleUpdatePainter(data) {
