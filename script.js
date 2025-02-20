@@ -1,5 +1,6 @@
 import { setupCanvas } from "./clients/hooks/useCanvas.js";
 import { setupChat } from "./clients/hooks/useChat.js";
+import { drawingUtils } from "./clients/utils/drawingUtils.js";
 
 let ws;
 let isDrawing = false;
@@ -31,7 +32,33 @@ const chat = setupChat(chatBox);
 
 const canvas = document.querySelector("canvas");
 let ctx = canvas.getContext("2d");
-const manageCanvas = setupCanvas(canvas, strokeHistory, startDrawing, draw, stopDrawing);
+
+
+const drawingUtil = drawingUtils(); // Create an instance
+const manageCanvas = setupCanvas(
+    canvas, 
+    ()=> strokeHistory, 
+    (event) => {
+        if (!playerData.painter) return;
+        isDrawing = true;
+        [lastX, lastY] = [event.offsetX, event.offsetY];
+    }, 
+    (event, ctx) => {
+        const newCoords = drawingUtil.draw(event, isDrawing, lastX, lastY, players, myPlayerId, currentBrushSize, currentColor, currentStroke, ws, ctx);
+        if (newCoords) {
+            [lastX, lastY] = newCoords;
+        }
+    }, 
+    () => {
+        const result = drawingUtil.stopDrawing(isDrawing, currentStroke, strokeHistory);
+        isDrawing = result.isDrawing;
+        currentStroke = result.currentStroke;
+    }
+);
+
+
+
+
 
 let isSpacePressed = false;
 
@@ -108,7 +135,7 @@ document.querySelector("#startGameBtn").addEventListener("click", () => {
 canvas.addEventListener("touchstart", (e) => {
     e.preventDefault();
     const touch = e.touches[0];
-    startDrawing(touch);
+    drawingUtils.startDrawing(touch);
 });
 
 canvas.addEventListener("touchmove", (e) => {
@@ -117,7 +144,7 @@ canvas.addEventListener("touchmove", (e) => {
     draw(touch);
 });
 
-canvas.addEventListener("touchend", stopDrawing);
+canvas.addEventListener("touchend", drawingUtil.stopDrawing);
 
 document.addEventListener("keydown", (e) => {
     if (e.ctrlKey && e.key === "z") {
@@ -158,8 +185,7 @@ function joinGame() {
 
                 document.querySelector("#chatInput").focus();
                 const sendBtn = document.querySelector("#sendBtn");
-                sendBtn.addEventListener("click", (e)=>
-                {
+                sendBtn.addEventListener("click", (e) => {
                     e.preventDefault();
                     chat.sendMessage(playerName, currentWord, playerData);
                 });
@@ -202,7 +228,7 @@ function joinGame() {
                     break;
 
                 case "draw":
-                    handleDraw(data);
+                    drawingUtil.handleDraw(data, ctx, currentStroke, strokeHistory);
                     break;
 
                 case "players":
@@ -271,15 +297,7 @@ function joinGame() {
         }
     };
 
-    // Helper function to handle "draw" messages
-    function handleDraw(data) {
-        if (data.x0 != null && data.y0 != null && data.x1 != null && data.y1 != null && data.color && data.width) {
-            drawLine(data.x0, data.y0, data.x1, data.y1, data.color, data.width);
-        } else {
-            console.warn("Invalid draw data:", data);
-        }
-    }
-
+  
     // Helper function to handle "players" messages
     function handlePlayers(data) {
         // console.log("Raw players data received:", data);
@@ -333,76 +351,9 @@ function joinGame() {
     });
 }
 
-function startDrawing(event) {
-    if (!playerData.painter) return;
-    isDrawing = true;
-    [lastX, lastY] = [event.offsetX, event.offsetY];
-}
-
-function draw(event) {
-    const currentPainter = players.find((player) => player.painter);
-
-    // Check if the current user is the painter
-    if (!currentPainter || currentPainter.id !== myPlayerId) {
-        // console.warn("You are not the painter!");
-        return;
-    }
-
-    if (!isDrawing) return;
-    const width = currentBrushSize;
-
-    currentStroke.push({
-        x0: lastX,
-        y0: lastY,
-        x1: event.offsetX,
-        y1: event.offsetY,
-        color: currentColor,
-        width: width,
-    });
-
-    drawLine(lastX, lastY, event.offsetX, event.offsetY, currentColor, width);
-
-    ws.send(
-        JSON.stringify({
-            type: "draw",
-            x0: lastX,
-            y0: lastY,
-            x1: event.offsetX,
-            y1: event.offsetY,
-            color: currentColor,
-            width: width,
-        })
-    );
-
-    [lastX, lastY] = [event.offsetX, event.offsetY];
-}
-
-function drawLine(x0, y0, x1, y1, color, width) {
-    ctx.beginPath();
-    ctx.moveTo(x0, y0);
-    ctx.lineTo(x1, y1);
-    ctx.strokeStyle = color;
-    ctx.lineWidth = width;
-    ctx.lineCap = "round";
-    ctx.stroke();
-}
-
-function stopDrawing() {
-    if (isDrawing && currentStroke.length > 0) {
-        strokeHistory.push([...currentStroke]);
-        currentStroke = [];
-    }
-    isDrawing = false;
-}
 
 function handleUndo(data) {
-    strokeHistory = data.history;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    strokeHistory.forEach((stroke) => {
-        stroke.forEach((point) => {
-            drawLine(point.x0, point.y0, point.x1, point.y1, point.color, point.width);
-        });
-    });
+    strokeHistory = drawingUtil.handleUndo(data, ctx, canvas);
 }
 
 function handleUpdatePainter(data) {
@@ -418,6 +369,7 @@ function handleUpdatePainter(data) {
     // Check if this client is the painter
     if (updatedPlayerId === myPlayerId) {
         playerData.painter = isPainter;
+        strokeHistory = [];
 
         if (!isPainter) {
             const wordDisplay = document.getElementById("current-word");
@@ -443,10 +395,8 @@ function updatePlayerList(players) {
     const generatedHTML = players
         .map(
             (player) =>
-                `<li data-player-id="${player.id}" ${player.painter ? 'class="painter"' : ""}><span><span>${
-                    player.name
-                } ${(!player.painter && player.knowsWord) ? '✓' : ''}</span> <span>${player.painter ? "(Painter)" : ""}</span></span><span>${
-                    player.points
+                `<li data-player-id="${player.id}" ${player.painter ? 'class="painter"' : ""}><span><span>${player.name
+                } ${(!player.painter && player.knowsWord) ? '✓' : ''}</span> <span>${player.painter ? "(Painter)" : ""}</span></span><span>${player.points
                 } Points</span></li>`
         )
         .join("");
@@ -482,12 +432,12 @@ function handleWordChoices(data) {
                                     <h3>Choose a word to draw:</h3>
                                     <div class="word-buttons">
                                         ${data.words
-                                            .map(
-                                                (word) => `
+                .map(
+                    (word) => `
                                             <button class="word-choice">${word}</button>
                                         `
-                                            )
-                                            .join("")}
+                )
+                .join("")}
                                     </div>
                                 </div>
                             `;
@@ -653,7 +603,7 @@ function undo() {
     // Redraws remaining strokes
     strokeHistory.forEach((stroke) => {
         stroke.forEach((point) => {
-            drawLine(point.x0, point.y0, point.x1, point.y1, point.color, point.width);
+            drawingUtil.drawLine(ctx, point.x0, point.y0, point.x1, point.y1, point.color, point.width);
         });
     });
 
@@ -681,12 +631,12 @@ function chooseWords() {
                     <h3>Choose a word to draw:</h3>
                     <div class="word-buttons">
                         ${randomWords
-                            .map(
-                                (word) => `
+                    .map(
+                        (word) => `
                             <button class="word-choice">${word}</button>
                         `
-                            )
-                            .join("")}
+                    )
+                    .join("")}
                     </div>
                 </div>
             `;
