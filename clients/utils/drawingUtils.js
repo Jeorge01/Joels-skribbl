@@ -80,7 +80,6 @@ export function drawingUtils() {
         }
     }
     
-
     function stopDrawing(isDrawing, currentStroke, strokeHistory) {
         if (isDrawing && currentStroke.length > 0) {
             strokeHistory.push([...currentStroke]);
@@ -93,8 +92,8 @@ export function drawingUtils() {
         }
     }
 
-    function handleUndo(data, ctx, canvas) {
-        const strokeHistory = data.history;
+    function handleUndo(strokeHistory, ctx, canvas) {
+        if (!strokeHistory) return;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         strokeHistory.forEach((stroke) => {
             stroke.forEach((point) => {
@@ -104,12 +103,41 @@ export function drawingUtils() {
         return strokeHistory;
     }
 
+    function undo(strokeHistory, ctx, canvas, ws) {
+        if (strokeHistory.length === 0) return strokeHistory;
+
+        // Remove the last stroke from the history
+        strokeHistory.pop();
+
+        // Clear the canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Redraw remaining strokes
+        strokeHistory.forEach((stroke) => {
+            stroke.forEach((point) => {
+                drawLine(ctx, point.x0, point.y0, point.x1, point.y1, point.color, point.width);
+            });
+        });
+
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(
+                JSON.stringify({
+                    type: "undo",
+                    history: strokeHistory,
+                })
+            );
+        }
+
+        return strokeHistory;
+    }
+
     return {
         startDrawing,
         draw,
         drawLine,
         handleDraw,
         stopDrawing,
-        handleUndo
+        handleUndo,
+        undo
     }
 }

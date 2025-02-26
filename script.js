@@ -56,10 +56,6 @@ const manageCanvas = setupCanvas(
     }
 );
 
-
-
-
-
 let isSpacePressed = false;
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -124,7 +120,7 @@ document.querySelector("#clearBtn").addEventListener("click", () => {
 
 document.querySelector("#undoBtn").addEventListener("click", () => {
     if (!playerData.painter) return;
-    undo();
+    drawingUtil.undo(strokeHistory, ctx, canvas, ws);
 });
 
 document.querySelector("#startGameBtn").addEventListener("click", () => {
@@ -244,7 +240,7 @@ function joinGame() {
                     break;
 
                 case "undo":
-                    handleUndo(data);
+                    drawingUtil.handleUndo(data.history, ctx, canvas);
                     break;
 
                 case "updatePainter":
@@ -349,11 +345,6 @@ function joinGame() {
             );
         }
     });
-}
-
-
-function handleUndo(data) {
-    strokeHistory = drawingUtil.handleUndo(data, ctx, canvas);
 }
 
 function handleUpdatePainter(data) {
@@ -591,31 +582,31 @@ function scheduleWinnerDisplayRemoval(element) {
     }, 5000);
 }
 
-function undo() {
-    if (strokeHistory.length === 0) return;
+// function undo() {
+//     if (strokeHistory.length === 0) return;
 
-    // Removes the last stroke from the canvas
-    strokeHistory.pop();
+//     // Removes the last stroke from the canvas
+//     strokeHistory.pop();
 
-    //clears the canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+//     //clears the canvas
+//     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Redraws remaining strokes
-    strokeHistory.forEach((stroke) => {
-        stroke.forEach((point) => {
-            drawingUtil.drawLine(ctx, point.x0, point.y0, point.x1, point.y1, point.color, point.width);
-        });
-    });
+//     // Redraws remaining strokes
+//     strokeHistory.forEach((stroke) => {
+//         stroke.forEach((point) => {
+//             drawingUtil.drawLine(ctx, point.x0, point.y0, point.x1, point.y1, point.color, point.width);
+//         });
+//     });
 
-    if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(
-            JSON.stringify({
-                type: "undo",
-                history: strokeHistory,
-            })
-        );
-    }
-}
+//     if (ws && ws.readyState === WebSocket.OPEN) {
+//         ws.send(
+//             JSON.stringify({
+//                 type: "undo",
+//                 history: strokeHistory,
+//             })
+//         );
+//     }
+// }
 
 function chooseWords() {
     // console.log("Choosing words...");
