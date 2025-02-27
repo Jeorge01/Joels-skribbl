@@ -16,11 +16,23 @@ export function drawingUtils() {
         return {
             isDrawing,
             lastX,
-            lastY
-        }
+            lastY,
+        };
     }
 
-    function draw(event, isDrawing, lastX, lastY, players, myPlayerId, currentBrushSize, currentColor, currentStroke, ws, ctx) {
+    function draw(
+        event,
+        isDrawing,
+        lastX,
+        lastY,
+        players,
+        myPlayerId,
+        currentBrushSize,
+        currentColor,
+        currentStroke,
+        ws,
+        ctx
+    ) {
         const currentPainter = players.find((player) => player.painter);
 
         if (!currentPainter || currentPainter.id !== myPlayerId) {
@@ -59,62 +71,77 @@ export function drawingUtils() {
     function handleDraw(data, ctx, currentStroke, strokeHistory) {
         if (data.x0 != null && data.y0 != null && data.x1 != null && data.y1 != null && data.color && data.width) {
             drawLine(ctx, data.x0, data.y0, data.x1, data.y1, data.color, data.width);
-            
-            // Store the complete stroke
-            if (currentStroke.length === 0) {
-                strokeHistory.push(currentStroke);
-            }
+
             currentStroke.push({
                 x0: data.x0,
                 y0: data.y0,
                 x1: data.x1,
                 y1: data.y1,
                 color: data.color,
-                width: data.width
+                width: data.width,
             });
-            
+
+            console.log("handleDraw called");
+            console.log("currentStroke:", currentStroke);
+            console.log("strokeHistory:", strokeHistory);
+
             return {
                 currentStroke,
-                strokeHistory
+                strokeHistory,
             };
         }
     }
-    
+
     function stopDrawing(isDrawing, currentStroke, strokeHistory) {
+        console.log("stopDrawing called");
+        console.log("isDrawing:", isDrawing);
+        console.log("currentStroke before push:", currentStroke);
         if (isDrawing && currentStroke.length > 0) {
-            strokeHistory.push([...currentStroke]);
-            currentStroke = [];
+            const newStroke = [...currentStroke];
+            strokeHistory.push(newStroke);
+            currentStroke.length = 0;
         }
+        console.log("strokeHistory after push:", strokeHistory);
         isDrawing = false;
         return {
             isDrawing,
-            currentStroke
-        }
+            currentStroke,
+        };
     }
 
     function handleUndo(strokeHistory, ctx, canvas) {
+        console.log("handleUndo called");
+        console.log("strokeHistory:", strokeHistory);
         if (!strokeHistory) return;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        strokeHistory.forEach((stroke) => {
-            stroke.forEach((point) => {
+        strokeHistory.forEach((stroke, strokeIndex) => {
+            console.log(`Redrawing stroke ${strokeIndex}:`, stroke);
+            stroke.forEach((point, pointIndex) => {
+                console.log(`Redrawing point ${pointIndex} of stroke ${strokeIndex}:`, point);
                 drawLine(ctx, point.x0, point.y0, point.x1, point.y1, point.color, point.width);
             });
         });
-        return strokeHistory;
     }
 
     function undo(strokeHistory, ctx, canvas, ws) {
+        console.log("undo called");
+        console.log("strokeHistory before pop:", strokeHistory);
         if (strokeHistory.length === 0) return strokeHistory;
 
         // Remove the last stroke from the history
-        strokeHistory.pop();
+        // strokeHistory.pop();
+        const removedStroke = strokeHistory.pop();
+        console.log("Removed stroke:", removedStroke);
+        console.log("strokeHistory after pop:", strokeHistory);
 
         // Clear the canvas
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         // Redraw remaining strokes
-        strokeHistory.forEach((stroke) => {
-            stroke.forEach((point) => {
+        strokeHistory.forEach((stroke, strokeIndex) => {
+            console.log(`Redrawing stroke ${strokeIndex}:`, stroke);
+            stroke.forEach((point, pointIndex) => {
+                console.log(`Redrawing point ${pointIndex} of stroke ${strokeIndex}:`, point);
                 drawLine(ctx, point.x0, point.y0, point.x1, point.y1, point.color, point.width);
             });
         });
@@ -138,6 +165,6 @@ export function drawingUtils() {
         handleDraw,
         stopDrawing,
         handleUndo,
-        undo
-    }
+        undo,
+    };
 }

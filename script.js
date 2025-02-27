@@ -120,6 +120,7 @@ document.querySelector("#clearBtn").addEventListener("click", () => {
 
 document.querySelector("#undoBtn").addEventListener("click", () => {
     if (!playerData.painter) return;
+    console.log("Undo button clicked");
     drawingUtil.undo(strokeHistory, ctx, canvas, ws);
 });
 
@@ -240,6 +241,7 @@ function joinGame() {
                     break;
 
                 case "undo":
+                    console.log("Undo message received from server");
                     drawingUtil.handleUndo(data.history, ctx, canvas);
                     break;
 
