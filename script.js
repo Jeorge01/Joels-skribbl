@@ -121,7 +121,9 @@ document.querySelector("#clearBtn").addEventListener("click", () => {
 document.querySelector("#undoBtn").addEventListener("click", () => {
     if (!playerData.painter) return;
     console.log("Undo button clicked");
-    drawingUtil.undo(strokeHistory, ctx, canvas, ws);
+    console.log("Stroke history before undo on client:", strokeHistory);
+    // drawingUtil.undo(strokeHistory, ctx, canvas, ws);
+    ws.send(JSON.stringify({ type: "undo", history: strokeHistory }));
 });
 
 document.querySelector("#startGameBtn").addEventListener("click", () => {
@@ -243,6 +245,7 @@ function joinGame() {
                 case "undo":
                     console.log("Undo message received from server");
                     drawingUtil.handleUndo(data.history, ctx, canvas);
+                    strokeHistory = data.history; // Update the stroke history
                     break;
 
                 case "updatePainter":
