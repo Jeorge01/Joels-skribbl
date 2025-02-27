@@ -54,7 +54,7 @@
 - [ ]sometimes there are two painters
 - [x]sometimes when joining game, the cnavas is 0x0 size
 - [x]sometimes if you join the canvas is not cleared
-
+- [] If one of two players has guessed correctly and the other leaves, the game waits for timer instead of ending
 
 ## Future Ideas
 - display the wordlenght, like in hangman?
